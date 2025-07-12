@@ -14,7 +14,140 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      budget_categories: {
+        Row: {
+          budget_amount: number
+          budget_id: string
+          created_at: string
+          id: string
+          name: string
+          spent: number
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          budget_amount?: number
+          budget_id: string
+          created_at?: string
+          id?: string
+          name: string
+          spent?: number
+          type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          budget_amount?: number
+          budget_id?: string
+          created_at?: string
+          id?: string
+          name?: string
+          spent?: number
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budget_categories_budget_id_fkey"
+            columns: ["budget_id"]
+            isOneToOne: false
+            referencedRelation: "monthly_budgets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      monthly_budgets: {
+        Row: {
+          created_at: string
+          fixed_budget: number
+          id: string
+          month: string
+          savings_budget: number
+          total_budget: number
+          updated_at: string
+          user_id: string
+          variable_budget: number
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          fixed_budget?: number
+          id?: string
+          month: string
+          savings_budget?: number
+          total_budget?: number
+          updated_at?: string
+          user_id: string
+          variable_budget?: number
+          year: number
+        }
+        Update: {
+          created_at?: string
+          fixed_budget?: number
+          id?: string
+          month?: string
+          savings_budget?: number
+          total_budget?: number
+          updated_at?: string
+          user_id?: string
+          variable_budget?: number
+          year?: number
+        }
+        Relationships: []
+      }
+      transactions: {
+        Row: {
+          amount: number
+          budget_id: string
+          category_id: string
+          created_at: string
+          date: string
+          description: string
+          id: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          budget_id: string
+          category_id: string
+          created_at?: string
+          date?: string
+          description: string
+          id?: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          budget_id?: string
+          category_id?: string
+          created_at?: string
+          date?: string
+          description?: string
+          id?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_budget_id_fkey"
+            columns: ["budget_id"]
+            isOneToOne: false
+            referencedRelation: "monthly_budgets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "budget_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

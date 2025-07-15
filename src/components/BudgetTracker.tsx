@@ -7,8 +7,12 @@ import { TransactionList } from './TransactionList';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Skeleton } from './ui/skeleton';
+import { supabase } from '@/integrations/supabase/client';
+import { LogOut, User } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 export const BudgetTracker = () => {
+  const { toast } = useToast();
   const {
     budget,
     loading,
@@ -26,6 +30,23 @@ export const BudgetTracker = () => {
 
   const totalSpent = getTotalSpent();
   const remainingBudget = getRemainingBudget();
+
+  const handleSignOut = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast({
+        title: "Signed Out",
+        description: "You have been successfully signed out.",
+      });
+      window.location.href = '/auth';
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to sign out. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   if (loading) {
     return (
@@ -72,14 +93,42 @@ export const BudgetTracker = () => {
   return (
     <div className="min-h-screen bg-background p-4 md:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto space-y-8">
-        {/* Header */}
-        <div className="text-center space-y-2">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-success bg-clip-text text-transparent">
-            Monthly Budget Tracker
-          </h1>
-          <p className="text-muted-foreground text-lg">
-            Take control of your finances with smart budget tracking
-          </p>
+        {/* User Profile & Header */}
+        <div className="flex justify-between items-start">
+          <div className="text-center flex-1 space-y-2">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-success bg-clip-text text-transparent">
+              Monthly Budget Tracker
+            </h1>
+            <p className="text-muted-foreground text-lg">
+              Take control of your finances with smart budget tracking
+            </p>
+          </div>
+          
+          {/* User Profile Card */}
+          <Card className="w-80">
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-primary/10 rounded-full">
+                  <User className="h-5 w-5 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <CardTitle className="text-lg">Welcome back!</CardTitle>
+                  <CardDescription className="text-sm truncate">
+                    {user.email}
+                  </CardDescription>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSignOut}
+                  className="flex items-center gap-2"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Sign Out
+                </Button>
+              </div>
+            </CardHeader>
+          </Card>
         </div>
 
         {/* Budget Overview */}

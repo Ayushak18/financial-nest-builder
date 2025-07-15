@@ -111,7 +111,8 @@ export const useBudget = () => {
         name: cat.name,
         budgetAmount: Number(cat.budget_amount),
         spent: Number(cat.spent),
-        type: cat.type as 'fixed' | 'variable' | 'savings'
+        type: cat.type as 'fixed' | 'variable' | 'savings',
+        color: cat.color
       })) || [],
       transactions: transactions?.map(t => ({
         id: t.id,
@@ -167,6 +168,7 @@ export const useBudget = () => {
           name: category.name,
           budget_amount: category.budgetAmount,
           type: category.type,
+          color: category.color,
           spent: 0
         })
         .select()
@@ -179,7 +181,8 @@ export const useBudget = () => {
         name: data.name,
         budgetAmount: Number(data.budget_amount),
         spent: 0,
-        type: data.type as 'fixed' | 'variable' | 'savings'
+        type: data.type as 'fixed' | 'variable' | 'savings',
+        color: data.color
       };
 
       setBudget(prev => ({

@@ -6,15 +6,12 @@ import { CategoryManager } from './CategoryManager';
 import { TransactionForm } from './TransactionForm';
 import { TransactionList } from './TransactionList';
 import { MonthSelector } from './MonthSelector';
+import { UserProfileDropdown } from './UserProfileDropdown';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Skeleton } from './ui/skeleton';
-import { supabase } from '@/integrations/supabase/client';
-import { LogOut, User } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
 
 export const BudgetTracker = () => {
-  const { toast } = useToast();
   const [selectedMonth, setSelectedMonth] = useState(new Date().toLocaleString('default', { month: 'long' }));
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const {
@@ -40,22 +37,6 @@ export const BudgetTracker = () => {
   const totalSpent = getTotalSpent();
   const remainingBudget = getRemainingBudget();
 
-  const handleSignOut = async () => {
-    try {
-      await supabase.auth.signOut();
-      toast({
-        title: "Signed Out",
-        description: "You have been successfully signed out.",
-      });
-      window.location.href = '/auth';
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to sign out. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
 
   if (loading) {
     return (
@@ -113,31 +94,10 @@ export const BudgetTracker = () => {
             </p>
           </div>
           
-          {/* User Profile Card */}
-          <Card className="w-full xl:w-80">
-            <CardHeader className="pb-3">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-primary/10 rounded-full">
-                  <User className="h-5 w-5 text-primary" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <CardTitle className="text-lg">Welcome back!</CardTitle>
-                  <CardDescription className="text-sm truncate">
-                    {user.email}
-                  </CardDescription>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleSignOut}
-                  className="flex items-center gap-2 shrink-0"
-                >
-                  <LogOut className="h-4 w-4" />
-                  <span className="hidden sm:inline">Sign Out</span>
-                </Button>
-              </div>
-            </CardHeader>
-          </Card>
+          {/* User Profile Dropdown */}
+          <div className="flex justify-center xl:justify-end">
+            <UserProfileDropdown user={user} />
+          </div>
         </div>
 
         {/* Month Selector */}

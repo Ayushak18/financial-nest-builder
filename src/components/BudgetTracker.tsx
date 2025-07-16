@@ -103,24 +103,24 @@ export const BudgetTracker = () => {
     <div className="min-h-screen bg-background p-4 md:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* User Profile & Header */}
-        <div className="flex justify-between items-start">
-          <div className="text-center flex-1 space-y-2">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-success bg-clip-text text-transparent">
+        <div className="flex flex-col gap-6 lg:flex-row lg:justify-between lg:items-start">
+          <div className="text-center lg:flex-1 space-y-2">
+            <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-primary to-success bg-clip-text text-transparent">
               Monthly Budget Tracker
             </h1>
-            <p className="text-muted-foreground text-lg">
+            <p className="text-muted-foreground text-base md:text-lg">
               Take control of your finances with smart budget tracking
             </p>
           </div>
           
           {/* User Profile Card */}
-          <Card className="w-80">
+          <Card className="w-full lg:w-80">
             <CardHeader className="pb-3">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-primary/10 rounded-full">
                   <User className="h-5 w-5 text-primary" />
                 </div>
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <CardTitle className="text-lg">Welcome back!</CardTitle>
                   <CardDescription className="text-sm truncate">
                     {user.email}
@@ -130,10 +130,10 @@ export const BudgetTracker = () => {
                   variant="outline"
                   size="sm"
                   onClick={handleSignOut}
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 shrink-0"
                 >
                   <LogOut className="h-4 w-4" />
-                  Sign Out
+                  <span className="hidden sm:inline">Sign Out</span>
                 </Button>
               </div>
             </CardHeader>

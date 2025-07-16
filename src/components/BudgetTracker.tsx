@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import { useBudget } from '@/hooks/useBudget';
 import { BudgetOverview } from './BudgetOverview';
 import { BudgetSetup } from './BudgetSetup';
 import { CategoryManager } from './CategoryManager';
 import { TransactionForm } from './TransactionForm';
 import { TransactionList } from './TransactionList';
+import { MonthSelector } from './MonthSelector';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Skeleton } from './ui/skeleton';
@@ -13,6 +15,8 @@ import { useToast } from '@/hooks/use-toast';
 
 export const BudgetTracker = () => {
   const { toast } = useToast();
+  const [selectedMonth, setSelectedMonth] = useState(new Date().toLocaleString('default', { month: 'long' }));
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const {
     budget,
     loading,
@@ -26,7 +30,12 @@ export const BudgetTracker = () => {
     getTotalSpent,
     getRemainingBudget,
     getCategoryProgress
-  } = useBudget();
+  } = useBudget(selectedMonth, selectedYear);
+
+  const handleMonthChange = (month: string, year: number) => {
+    setSelectedMonth(month);
+    setSelectedYear(year);
+  };
 
   const totalSpent = getTotalSpent();
   const remainingBudget = getRemainingBudget();
@@ -130,6 +139,13 @@ export const BudgetTracker = () => {
             </CardHeader>
           </Card>
         </div>
+
+        {/* Month Selector */}
+        <MonthSelector 
+          selectedMonth={selectedMonth}
+          selectedYear={selectedYear}
+          onMonthChange={handleMonthChange}
+        />
 
         {/* Budget Overview */}
         <BudgetOverview 

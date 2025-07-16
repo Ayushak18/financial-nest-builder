@@ -3,12 +3,12 @@ import { BudgetCategory, Transaction, MonthlyBudget } from '@/types/budget';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-export const useBudget = () => {
+export const useBudget = (selectedMonth?: string, selectedYear?: number) => {
   const { toast } = useToast();
   const [budget, setBudget] = useState<MonthlyBudget>({
     id: '',
-    month: new Date().toLocaleString('default', { month: 'long' }),
-    year: new Date().getFullYear(),
+    month: selectedMonth || new Date().toLocaleString('default', { month: 'long' }),
+    year: selectedYear || new Date().getFullYear(),
     totalBudget: 0,
     fixedBudget: 0,
     variableBudget: 0,
@@ -29,7 +29,7 @@ export const useBudget = () => {
           return;
         }
         setUser(user);
-        await loadBudgetData(user.id);
+        await loadBudgetData(user.id, selectedMonth, selectedYear);
       } catch (error) {
         console.error('Error loading data:', error);
         toast({
@@ -43,19 +43,19 @@ export const useBudget = () => {
     };
 
     loadData();
-  }, []);
+  }, [selectedMonth, selectedYear]);
 
-  const loadBudgetData = async (userId: string) => {
-    const currentMonth = new Date().toLocaleString('default', { month: 'long' });
-    const currentYear = new Date().getFullYear();
+  const loadBudgetData = async (userId: string, month?: string, year?: number) => {
+    const targetMonth = month || new Date().toLocaleString('default', { month: 'long' });
+    const targetYear = year || new Date().getFullYear();
 
-    // Load or create current month's budget
+    // Load or create target month's budget
     let { data: monthlyBudget, error: budgetError } = await supabase
       .from('monthly_budgets')
       .select('*')
       .eq('user_id', userId)
-      .eq('month', currentMonth)
-      .eq('year', currentYear)
+      .eq('month', targetMonth)
+      .eq('year', targetYear)
       .single();
 
     if (budgetError && budgetError.code === 'PGRST116') {
@@ -64,8 +64,8 @@ export const useBudget = () => {
         .from('monthly_budgets')
         .insert({
           user_id: userId,
-          month: currentMonth,
-          year: currentYear,
+          month: targetMonth,
+          year: targetYear,
           total_budget: 0,
           fixed_budget: 0,
           variable_budget: 0,

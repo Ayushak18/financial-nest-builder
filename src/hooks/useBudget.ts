@@ -499,9 +499,9 @@ export const useBudget = (selectedMonth?: string, selectedYear?: number) => {
       .reduce((total, cat) => total + cat.spent, 0);
 
     return {
-      fixedSpent,
-      variableSpent,
-      savingsSpent
+      fixed: fixedSpent,
+      variable: variableSpent,
+      savings: savingsSpent
     };
   };
 

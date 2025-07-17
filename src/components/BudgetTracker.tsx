@@ -7,6 +7,8 @@ import { TransactionForm } from './TransactionForm';
 import { TransactionList } from './TransactionList';
 import { MonthSelector } from './MonthSelector';
 import { UserProfileDropdown } from './UserProfileDropdown';
+import { BudgetInsights } from './BudgetInsights';
+import { ExportData } from './ExportData';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Skeleton } from './ui/skeleton';
@@ -136,6 +138,25 @@ export const BudgetTracker = () => {
         <TransactionForm 
           categories={budget.categories}
           onAddTransaction={addTransaction}
+        />
+
+        {/* Budget Insights */}
+        <BudgetInsights
+          categories={budget.categories}
+          transactions={budget.transactions}
+          totalBudget={budget.totalBudget}
+          fixedBudget={budget.fixedBudget}
+          variableBudget={budget.variableBudget}
+          savingsBudget={budget.savingsBudget}
+          getSpendingByType={getSpendingByType}
+        />
+
+        {/* Export Data */}
+        <ExportData
+          budget={budget}
+          categories={budget.categories}
+          transactions={budget.transactions}
+          getSpendingByType={getSpendingByType}
         />
 
         {/* Transaction List */}

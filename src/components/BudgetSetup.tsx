@@ -8,8 +8,8 @@ import { MonthlyBudget } from '@/types/budget';
 
 interface BudgetSetupProps {
   budget: MonthlyBudget;
-  onUpdateBudget: (updates: Partial<MonthlyBudget>) => void;
-  getSpendingByType: () => { fixedSpent: number; variableSpent: number; savingsSpent: number; };
+  onUpdateBudget: (updates: Partial<MonthlyBudget>) => Promise<void>;
+  getSpendingByType: () => { fixed: number; variable: number; savings: number };
 }
 
 export const BudgetSetup = ({ budget, onUpdateBudget, getSpendingByType }: BudgetSetupProps) => {
@@ -36,7 +36,7 @@ export const BudgetSetup = ({ budget, onUpdateBudget, getSpendingByType }: Budge
     setIsEditing(false);
   };
 
-  const { fixedSpent, variableSpent, savingsSpent } = getSpendingByType();
+  const { fixed: fixedSpent, variable: variableSpent, savings: savingsSpent } = getSpendingByType();
 
   return (
     <Card className="shadow-soft border-0 mb-8">

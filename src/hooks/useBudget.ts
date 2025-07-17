@@ -339,6 +339,90 @@ export const useBudget = (selectedMonth?: string, selectedYear?: number) => {
     }
   };
 
+  const updateTransaction = async (transactionId: string, updates: Partial<Transaction>) => {
+    if (!user) return;
+
+    try {
+      const oldTransaction = budget.transactions.find(t => t.id === transactionId);
+      if (!oldTransaction) return;
+
+      // Update transaction in database
+      const { error } = await supabase
+        .from('transactions')
+        .update({
+          description: updates.description,
+          amount: updates.amount,
+          type: updates.type,
+          category_id: updates.categoryId,
+          date: updates.date?.toISOString()
+        })
+        .eq('id', transactionId);
+
+      if (error) throw error;
+
+      // Update category spent amounts
+      const oldCategory = budget.categories.find(cat => cat.id === oldTransaction.categoryId);
+      const newCategory = budget.categories.find(cat => cat.id === (updates.categoryId || oldTransaction.categoryId));
+
+      if (oldCategory && newCategory) {
+        // Revert old transaction effect
+        const oldCategoryNewSpent = oldTransaction.type === 'expense'
+          ? Math.max(0, oldCategory.spent - oldTransaction.amount)
+          : oldCategory.spent + oldTransaction.amount;
+
+        // Apply new transaction effect
+        const newTransactionAmount = updates.amount ?? oldTransaction.amount;
+        const newTransactionType = updates.type ?? oldTransaction.type;
+        const newCategoryUpdatedSpent = newTransactionType === 'expense'
+          ? newCategory.spent + newTransactionAmount
+          : Math.max(0, newCategory.spent - newTransactionAmount);
+
+        // Update both categories if they're different
+        if (oldCategory.id !== newCategory.id) {
+          await Promise.all([
+            supabase.from('budget_categories').update({ spent: oldCategoryNewSpent }).eq('id', oldCategory.id),
+            supabase.from('budget_categories').update({ spent: newCategoryUpdatedSpent }).eq('id', newCategory.id)
+          ]);
+        } else {
+          // Same category, calculate net change
+          const netSpent = oldCategoryNewSpent + (newTransactionType === 'expense' ? newTransactionAmount : -newTransactionAmount);
+          await supabase.from('budget_categories').update({ spent: Math.max(0, netSpent) }).eq('id', newCategory.id);
+        }
+
+        setBudget(prev => ({
+          ...prev,
+          categories: prev.categories.map(cat => {
+            if (cat.id === oldCategory.id && cat.id === newCategory.id) {
+              // Same category
+              const netSpent = oldCategoryNewSpent + (newTransactionType === 'expense' ? newTransactionAmount : -newTransactionAmount);
+              return { ...cat, spent: Math.max(0, netSpent) };
+            } else if (cat.id === oldCategory.id) {
+              return { ...cat, spent: oldCategoryNewSpent };
+            } else if (cat.id === newCategory.id) {
+              return { ...cat, spent: newCategoryUpdatedSpent };
+            }
+            return cat;
+          }),
+          transactions: prev.transactions.map(t =>
+            t.id === transactionId ? { ...t, ...updates } : t
+          )
+        }));
+      }
+
+      toast({
+        title: "Success",
+        description: "Transaction updated successfully",
+      });
+    } catch (error) {
+      console.error('Error updating transaction:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update transaction",
+        variant: "destructive",
+      });
+    }
+  };
+
   const deleteTransaction = async (transactionId: string) => {
     if (!user) return;
 
@@ -401,6 +485,26 @@ export const useBudget = (selectedMonth?: string, selectedYear?: number) => {
     return Math.min((category.spent / category.budgetAmount) * 100, 100);
   };
 
+  const getSpendingByType = () => {
+    const fixedSpent = budget.categories
+      .filter(cat => cat.type === 'fixed')
+      .reduce((total, cat) => total + cat.spent, 0);
+    
+    const variableSpent = budget.categories
+      .filter(cat => cat.type === 'variable')
+      .reduce((total, cat) => total + cat.spent, 0);
+    
+    const savingsSpent = budget.categories
+      .filter(cat => cat.type === 'savings')
+      .reduce((total, cat) => total + cat.spent, 0);
+
+    return {
+      fixedSpent,
+      variableSpent,
+      savingsSpent
+    };
+  };
+
   return {
     budget,
     loading,
@@ -410,9 +514,11 @@ export const useBudget = (selectedMonth?: string, selectedYear?: number) => {
     updateCategory,
     deleteCategory,
     addTransaction,
+    updateTransaction,
     deleteTransaction,
     getTotalSpent,
     getRemainingBudget,
-    getCategoryProgress
+    getCategoryProgress,
+    getSpendingByType
   };
 };

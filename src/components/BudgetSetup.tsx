@@ -9,9 +9,10 @@ import { MonthlyBudget } from '@/types/budget';
 interface BudgetSetupProps {
   budget: MonthlyBudget;
   onUpdateBudget: (updates: Partial<MonthlyBudget>) => void;
+  getSpendingByType: () => { fixedSpent: number; variableSpent: number; savingsSpent: number; };
 }
 
-export const BudgetSetup = ({ budget, onUpdateBudget }: BudgetSetupProps) => {
+export const BudgetSetup = ({ budget, onUpdateBudget, getSpendingByType }: BudgetSetupProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     totalBudget: budget.totalBudget,
@@ -34,6 +35,8 @@ export const BudgetSetup = ({ budget, onUpdateBudget }: BudgetSetupProps) => {
     });
     setIsEditing(false);
   };
+
+  const { fixedSpent, variableSpent, savingsSpent } = getSpendingByType();
 
   return (
     <Card className="shadow-soft border-0 mb-8">
@@ -106,8 +109,13 @@ export const BudgetSetup = ({ budget, onUpdateBudget }: BudgetSetupProps) => {
                 placeholder="0"
               />
             ) : (
-              <div className="text-2xl font-bold" style={{ color: 'hsl(var(--category-fixed))' }}>
-                ${budget.fixedBudget.toLocaleString()}
+              <div className="space-y-1">
+                <div className="text-2xl font-bold" style={{ color: 'hsl(var(--category-fixed))' }}>
+                  ${budget.fixedBudget.toLocaleString()}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Spent: ${fixedSpent.toLocaleString()}
+                </div>
               </div>
             )}
           </div>
@@ -126,8 +134,13 @@ export const BudgetSetup = ({ budget, onUpdateBudget }: BudgetSetupProps) => {
                 placeholder="0"
               />
             ) : (
-              <div className="text-2xl font-bold" style={{ color: 'hsl(var(--category-variable))' }}>
-                ${budget.variableBudget.toLocaleString()}
+              <div className="space-y-1">
+                <div className="text-2xl font-bold" style={{ color: 'hsl(var(--category-variable))' }}>
+                  ${budget.variableBudget.toLocaleString()}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Spent: ${variableSpent.toLocaleString()}
+                </div>
               </div>
             )}
           </div>
@@ -146,8 +159,13 @@ export const BudgetSetup = ({ budget, onUpdateBudget }: BudgetSetupProps) => {
                 placeholder="0"
               />
             ) : (
-              <div className="text-2xl font-bold" style={{ color: 'hsl(var(--category-savings))' }}>
-                ${budget.savingsBudget.toLocaleString()}
+              <div className="space-y-1">
+                <div className="text-2xl font-bold" style={{ color: 'hsl(var(--category-savings))' }}>
+                  ${budget.savingsBudget.toLocaleString()}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Contributed: ${savingsSpent.toLocaleString()}
+                </div>
               </div>
             )}
           </div>

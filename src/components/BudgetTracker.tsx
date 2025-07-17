@@ -23,10 +23,12 @@ export const BudgetTracker = () => {
     updateCategory,
     deleteCategory,
     addTransaction,
+    updateTransaction,
     deleteTransaction,
     getTotalSpent,
     getRemainingBudget,
-    getCategoryProgress
+    getCategoryProgress,
+    getSpendingByType
   } = useBudget(selectedMonth, selectedYear);
 
   const handleMonthChange = (month: string, year: number) => {
@@ -118,6 +120,7 @@ export const BudgetTracker = () => {
         <BudgetSetup 
           budget={budget}
           onUpdateBudget={updateBudget}
+          getSpendingByType={getSpendingByType}
         />
 
         {/* Category Manager */}
@@ -140,6 +143,7 @@ export const BudgetTracker = () => {
           transactions={budget.transactions}
           categories={budget.categories}
           onDeleteTransaction={deleteTransaction}
+          onUpdateTransaction={updateTransaction}
         />
       </div>
     </div>

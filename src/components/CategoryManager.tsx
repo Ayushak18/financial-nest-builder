@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Trash2, FolderOpen, Target } from 'lucide-react';
+import { Plus, Trash2, FolderOpen, Target, Edit, Check, X } from 'lucide-react';
 import { BudgetCategory } from '@/types/budget';
 
 interface CategoryManagerProps {
@@ -43,12 +43,14 @@ export const CategoryManager = ({
   getCategoryProgress 
 }: CategoryManagerProps) => {
   const [isAdding, setIsAdding] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [newCategory, setNewCategory] = useState({
     name: '',
     type: 'variable' as 'fixed' | 'variable' | 'savings',
     budgetAmount: 0,
     color: categoryColors[0]
   });
+  const [editCategory, setEditCategory] = useState<Partial<BudgetCategory>>({});
 
   const handleAddCategory = () => {
     if (newCategory.name && newCategory.budgetAmount > 0) {
@@ -70,6 +72,29 @@ export const CategoryManager = ({
       budgetAmount: 0,
       color: categoryColors[colorIndex]
     });
+  };
+
+  const handleEditCategory = (category: BudgetCategory) => {
+    setEditingId(category.id);
+    setEditCategory({
+      name: category.name,
+      budgetAmount: category.budgetAmount,
+      type: category.type,
+      color: category.color
+    });
+  };
+
+  const handleSaveEdit = () => {
+    if (editingId && editCategory) {
+      onUpdateCategory(editingId, editCategory);
+      setEditingId(null);
+      setEditCategory({});
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setEditCategory({});
   };
 
   return (
@@ -202,57 +227,131 @@ export const CategoryManager = ({
           {categories.map((category) => {
             const progress = getCategoryProgress(category);
             const isOverBudget = category.spent > category.budgetAmount;
+            const isEditing = editingId === category.id;
             
             return (
               <Card key={category.id} className="border shadow-soft">
                 <CardContent className="p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <div 
-                        className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: category.color }}
-                      />
-                      <h4 className="font-medium">{category.name}</h4>
+                  {isEditing ? (
+                    <div className="space-y-3">
+                      <div>
+                        <Label className="text-xs">Name</Label>
+                        <Input
+                          value={editCategory.name || ''}
+                          onChange={(e) => setEditCategory({ ...editCategory, name: e.target.value })}
+                          className="text-sm"
+                        />
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <Label className="text-xs">Budget</Label>
+                          <Input
+                            type="number"
+                            value={editCategory.budgetAmount || ''}
+                            onChange={(e) => setEditCategory({ ...editCategory, budgetAmount: Number(e.target.value) })}
+                            className="text-sm"
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label className="text-xs">Type</Label>
+                          <Select
+                            value={editCategory.type || category.type}
+                            onValueChange={(value: 'fixed' | 'variable' | 'savings') => 
+                              setEditCategory({ ...editCategory, type: value })
+                            }
+                          >
+                            <SelectTrigger className="text-xs">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="fixed">Fixed</SelectItem>
+                              <SelectItem value="variable">Variable</SelectItem>
+                              <SelectItem value="savings">Savings</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      
+                      <div className="flex justify-between">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleSaveEdit}
+                          className="text-success hover:text-success"
+                        >
+                          <Check className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleCancelEdit}
+                          className="text-muted-foreground hover:text-muted-foreground"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <Badge variant="outline" className="text-xs">
-                        {category.type}
-                      </Badge>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onDeleteCategory(category.id)}
-                        className="h-6 w-6 p-0 text-destructive hover:text-destructive"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Spent: ${category.spent.toLocaleString()}</span>
-                      <span>Budget: ${category.budgetAmount.toLocaleString()}</span>
-                    </div>
-                    
-                    <Progress 
-                      value={Math.min(progress, 100)} 
-                      className="h-2"
-                    />
-                    
-                    <div className="flex justify-between items-center">
-                      <span className={`text-xs ${isOverBudget ? 'text-destructive' : 'text-muted-foreground'}`}>
-                        {progress.toFixed(1)}% used
-                      </span>
-                      <span className={`text-xs font-medium ${
-                        isOverBudget ? 'text-destructive' : 'text-success'
-                      }`}>
-                        ${Math.abs(category.budgetAmount - category.spent).toLocaleString()} {
-                          isOverBudget ? 'over' : 'remaining'
-                        }
-                      </span>
-                    </div>
-                  </div>
+                  ) : (
+                    <>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: category.color }}
+                          />
+                          <h4 className="font-medium">{category.name}</h4>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Badge variant="outline" className="text-xs">
+                            {category.type}
+                          </Badge>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEditCategory(category)}
+                            className="h-6 w-6 p-0 text-primary hover:text-primary"
+                          >
+                            <Edit className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => onDeleteCategory(category.id)}
+                            className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span>Spent: ${category.spent.toLocaleString()}</span>
+                          <span>Budget: ${category.budgetAmount.toLocaleString()}</span>
+                        </div>
+                        
+                        <Progress 
+                          value={Math.min(progress, 100)} 
+                          className="h-2"
+                        />
+                        
+                        <div className="flex justify-between items-center">
+                          <span className={`text-xs ${isOverBudget ? 'text-destructive' : 'text-muted-foreground'}`}>
+                            {progress.toFixed(1)}% used
+                          </span>
+                          <span className={`text-xs font-medium ${
+                            isOverBudget ? 'text-destructive' : 'text-success'
+                          }`}>
+                            ${Math.abs(category.budgetAmount - category.spent).toLocaleString()} {
+                              isOverBudget ? 'over' : 'remaining'
+                            }
+                          </span>
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </CardContent>
               </Card>
             );

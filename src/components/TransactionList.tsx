@@ -1,16 +1,22 @@
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Trash2, ArrowUpRight, ArrowDownLeft, Receipt } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Trash2, ArrowUpRight, ArrowDownLeft, Receipt, Edit, Check, X } from 'lucide-react';
 import { Transaction, BudgetCategory } from '@/types/budget';
 
 interface TransactionListProps {
   transactions: Transaction[];
   categories: BudgetCategory[];
   onDeleteTransaction: (transactionId: string) => void;
+  onUpdateTransaction: (transactionId: string, updates: Partial<Transaction>) => void;
 }
 
-export const TransactionList = ({ transactions, categories, onDeleteTransaction }: TransactionListProps) => {
+export const TransactionList = ({ transactions, categories, onDeleteTransaction, onUpdateTransaction }: TransactionListProps) => {
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState<Partial<Transaction>>({});
   const sortedTransactions = [...transactions].sort((a, b) => 
     new Date(b.date).getTime() - new Date(a.date).getTime()
   );
@@ -23,6 +29,30 @@ export const TransactionList = ({ transactions, categories, onDeleteTransaction 
   const getCategoryColor = (categoryId: string) => {
     const category = categories.find(c => c.id === categoryId);
     return category?.color || 'hsl(var(--muted))';
+  };
+
+  const handleEdit = (transaction: Transaction) => {
+    setEditingId(transaction.id);
+    setEditForm({
+      description: transaction.description,
+      amount: transaction.amount,
+      type: transaction.type,
+      categoryId: transaction.categoryId,
+      date: transaction.date
+    });
+  };
+
+  const handleSaveEdit = () => {
+    if (editingId && editForm) {
+      onUpdateTransaction(editingId, editForm);
+      setEditingId(null);
+      setEditForm({});
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setEditForm({});
   };
 
   return (
@@ -43,6 +73,95 @@ export const TransactionList = ({ transactions, categories, onDeleteTransaction 
           <div className="space-y-3 max-h-96 overflow-y-auto">
             {sortedTransactions.map((transaction) => {
               const isIncome = transaction.type === 'income';
+              const isEditing = editingId === transaction.id;
+              
+              if (isEditing) {
+                return (
+                  <div 
+                    key={transaction.id}
+                    className="p-3 border rounded-lg bg-accent/30"
+                  >
+                    <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+                      <div>
+                        <Input
+                          value={editForm.description || ''}
+                          onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                          placeholder="Description"
+                          className="text-sm"
+                        />
+                      </div>
+                      
+                      <div>
+                        <Input
+                          type="number"
+                          value={editForm.amount || ''}
+                          onChange={(e) => setEditForm({ ...editForm, amount: Number(e.target.value) })}
+                          placeholder="Amount"
+                          className="text-sm"
+                        />
+                      </div>
+                      
+                      <div>
+                        <Select
+                          value={editForm.type || transaction.type}
+                          onValueChange={(value: 'income' | 'expense') => setEditForm({ ...editForm, type: value })}
+                        >
+                          <SelectTrigger className="text-sm">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="expense">Expense</SelectItem>
+                            <SelectItem value="income">Income</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div>
+                        <Select
+                          value={editForm.categoryId || transaction.categoryId}
+                          onValueChange={(value) => setEditForm({ ...editForm, categoryId: value })}
+                        >
+                          <SelectTrigger className="text-sm">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {categories.map((category) => (
+                              <SelectItem key={category.id} value={category.id}>
+                                <div className="flex items-center gap-2">
+                                  <div 
+                                    className="w-3 h-3 rounded-full"
+                                    style={{ backgroundColor: category.color }}
+                                  />
+                                  {category.name}
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleSaveEdit}
+                          className="h-8 w-8 p-0 text-success hover:text-success"
+                        >
+                          <Check className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleCancelEdit}
+                          className="h-8 w-8 p-0 text-muted-foreground hover:text-muted-foreground"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
               
               return (
                 <div 
@@ -87,6 +206,15 @@ export const TransactionList = ({ transactions, categories, onDeleteTransaction 
                     }`}>
                       {isIncome ? '+' : '-'}${transaction.amount.toLocaleString()}
                     </span>
+                    
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEdit(transaction)}
+                      className="h-8 w-8 p-0 text-primary hover:text-primary"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
                     
                     <Button
                       variant="ghost"

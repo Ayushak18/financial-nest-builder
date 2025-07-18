@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useBudget } from '@/hooks/useBudget';
+import { supabase } from '@/integrations/supabase/client';
 import { BudgetOverview } from './BudgetOverview';
 import { BudgetSetup } from './BudgetSetup';
 import { CategoryManager } from './CategoryManager';
@@ -9,6 +10,12 @@ import { MonthSelector } from './MonthSelector';
 import { UserProfileDropdown } from './UserProfileDropdown';
 import { BudgetInsights } from './BudgetInsights';
 import { ExportData } from './ExportData';
+import { BankAccountManager } from './BankAccountManager';
+import { InvestmentTracker } from './InvestmentTracker';
+import { NetWorthDashboard } from './NetWorthDashboard';
+import { DebtManager } from './DebtManager';
+import { FinancialGoalsTracker } from './FinancialGoalsTracker';
+import { AccountTransfer } from './AccountTransfer';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Skeleton } from './ui/skeleton';
@@ -16,6 +23,8 @@ import { Skeleton } from './ui/skeleton';
 export const BudgetTracker = () => {
   const [selectedMonth, setSelectedMonth] = useState(new Date().toLocaleString('default', { month: 'long' }));
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [accounts, setAccounts] = useState([]);
+  
   const {
     budget,
     loading,
@@ -32,6 +41,16 @@ export const BudgetTracker = () => {
     getCategoryProgress,
     getSpendingByType
   } = useBudget(selectedMonth, selectedYear);
+
+  const fetchAccounts = async () => {
+    if (!user) return;
+    const { data } = await supabase.from('bank_accounts').select('*').eq('user_id', user.id).eq('is_active', true);
+    setAccounts(data || []);
+  };
+
+  useEffect(() => {
+    fetchAccounts();
+  }, [user]);
 
   const handleMonthChange = (month: string, year: number) => {
     setSelectedMonth(month);
@@ -158,6 +177,21 @@ export const BudgetTracker = () => {
           transactions={budget.transactions}
           getSpendingByType={getSpendingByType}
         />
+
+        {/* Advanced Financial Features */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+          <BankAccountManager user={user} />
+          <AccountTransfer user={user} accounts={accounts} onTransferComplete={fetchAccounts} />
+        </div>
+
+        <NetWorthDashboard user={user} />
+
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+          <InvestmentTracker user={user} accounts={accounts} />
+          <DebtManager user={user} />
+        </div>
+
+        <FinancialGoalsTracker user={user} />
 
         {/* Transaction List */}
         <TransactionList 

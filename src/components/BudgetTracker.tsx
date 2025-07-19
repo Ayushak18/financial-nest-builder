@@ -16,9 +16,15 @@ import { NetWorthDashboard } from './NetWorthDashboard';
 import { DebtManager } from './DebtManager';
 import { FinancialGoalsTracker } from './FinancialGoalsTracker';
 import { AccountTransfer } from './AccountTransfer';
+import { RecurringTransactionsManager } from './RecurringTransactionsManager';
+import { BudgetAlertsManager } from './BudgetAlertsManager';
+import { BillReminders } from './BillReminders';
+import { TrendAnalysis } from './TrendAnalysis';
+import { FinancialForecasting } from './FinancialForecasting';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Skeleton } from './ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 
 export const BudgetTracker = () => {
   const [selectedMonth, setSelectedMonth] = useState(new Date().toLocaleString('default', { month: 'long' }));
@@ -178,20 +184,59 @@ export const BudgetTracker = () => {
           getSpendingByType={getSpendingByType}
         />
 
-        {/* Advanced Financial Features */}
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-          <BankAccountManager user={user} />
-          <AccountTransfer user={user} accounts={accounts} onTransferComplete={fetchAccounts} />
-        </div>
+        {/* Financial Management Tabs */}
+        <Tabs defaultValue="overview" className="w-full">
+          <TabsList className="grid w-full grid-cols-10 text-xs">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="accounts">Accounts</TabsTrigger>
+            <TabsTrigger value="investments">Investments</TabsTrigger>
+            <TabsTrigger value="net-worth">Net Worth</TabsTrigger>
+            <TabsTrigger value="debt">Debt</TabsTrigger>
+            <TabsTrigger value="goals">Goals</TabsTrigger>
+            <TabsTrigger value="recurring">Recurring</TabsTrigger>
+            <TabsTrigger value="bills">Bills</TabsTrigger>
+            <TabsTrigger value="trends">Trends</TabsTrigger>
+            <TabsTrigger value="forecast">Forecast</TabsTrigger>
+          </TabsList>
 
-        <NetWorthDashboard user={user} />
-
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-          <InvestmentTracker user={user} accounts={accounts} />
-          <DebtManager user={user} />
-        </div>
-
-        <FinancialGoalsTracker user={user} />
+          <TabsContent value="overview" className="space-y-6">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+              <BankAccountManager user={user} />
+              <AccountTransfer user={user} accounts={accounts} onTransferComplete={fetchAccounts} />
+            </div>
+            <NetWorthDashboard user={user} />
+          </TabsContent>
+          
+          <TabsContent value="accounts" className="space-y-6">
+            <BankAccountManager user={user} />
+            <AccountTransfer user={user} accounts={accounts} onTransferComplete={fetchAccounts} />
+          </TabsContent>
+          <TabsContent value="investments">
+            <InvestmentTracker user={user} accounts={accounts} />
+          </TabsContent>
+          <TabsContent value="net-worth">
+            <NetWorthDashboard user={user} />
+          </TabsContent>
+          <TabsContent value="debt">
+            <DebtManager user={user} />
+          </TabsContent>
+          <TabsContent value="goals">
+            <FinancialGoalsTracker user={user} />
+          </TabsContent>
+          <TabsContent value="recurring" className="space-y-6">
+            <RecurringTransactionsManager />
+            <BudgetAlertsManager />
+          </TabsContent>
+          <TabsContent value="bills">
+            <BillReminders />
+          </TabsContent>
+          <TabsContent value="trends">
+            <TrendAnalysis />
+          </TabsContent>
+          <TabsContent value="forecast">
+            <FinancialForecasting />
+          </TabsContent>
+        </Tabs>
 
         {/* Transaction List */}
         <TransactionList 

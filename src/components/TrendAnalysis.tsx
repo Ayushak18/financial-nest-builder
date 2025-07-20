@@ -175,12 +175,18 @@ export function TrendAnalysis() {
             </Select>
           </div>
 
-          <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={trendData}>
+          <div className="h-80 w-full overflow-x-auto">
+            <ResponsiveContainer width="100%" height="100%" minWidth={300}>
+              <LineChart data={trendData} margin={{ top: 20, right: 20, left: 20, bottom: 20 }}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
+                <XAxis 
+                  dataKey="month" 
+                  tick={{ fontSize: 12 }}
+                  angle={-45}
+                  textAnchor="end"
+                  height={60}
+                />
+                <YAxis tick={{ fontSize: 12 }} />
                 <Tooltip formatter={(value: number) => [`$${value.toFixed(2)}`, '']} />
                 <Line 
                   type="monotone" 
@@ -216,14 +222,14 @@ export function TrendAnalysis() {
             <CardDescription>Spending distribution by category</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-64">
+            <div className="h-64 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
                     data={categoryTrends}
                     cx="50%"
                     cy="50%"
-                    outerRadius={80}
+                    outerRadius="70%"
                     dataKey="amount"
                     nameKey="name"
                   >

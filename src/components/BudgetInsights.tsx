@@ -78,11 +78,18 @@ export const BudgetInsights = ({
             <CardDescription>Compare your spending against budget for each category</CardDescription>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={chartConfig} className="h-64">
+            <ChartContainer config={chartConfig} className="h-64 w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={categorySpendingData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                  <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                  <YAxis />
+                <BarChart data={categorySpendingData} margin={{ top: 20, right: 10, left: 10, bottom: 5 }}>
+                  <XAxis 
+                    dataKey="name" 
+                    tick={{ fontSize: 10 }} 
+                    angle={-45}
+                    textAnchor="end"
+                    height={60}
+                    interval={0}
+                  />
+                  <YAxis tick={{ fontSize: 10 }} />
                   <ChartTooltip content={<ChartTooltipContent />} />
                   <Bar dataKey="budget" fill="hsl(var(--muted))" name="Budget" />
                   <Bar dataKey="spent" fill="hsl(var(--primary))" name="Spent" />
@@ -120,16 +127,17 @@ export const BudgetInsights = ({
             <CardDescription>Breakdown of spending by category</CardDescription>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={chartConfig} className="h-64">
+            <ChartContainer config={chartConfig} className="h-64 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
                     data={pieChartData}
                     cx="50%"
                     cy="50%"
-                    outerRadius={80}
+                    outerRadius="70%"
                     dataKey="value"
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                    labelLine={false}
                   >
                     {pieChartData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.fill} />

@@ -196,7 +196,7 @@ export function FinancialForecasting() {
         </CardHeader>
         <CardContent>
           <div className="flex justify-between items-center mb-6">
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="text-center">
                 <div className="text-2xl font-bold text-blue-600">
                   ${forecastData.length > 0 ? forecastData[forecastData.length - 1].projectedBalance.toFixed(2) : '0.00'}
@@ -228,12 +228,18 @@ export function FinancialForecasting() {
             </Select>
           </div>
 
-          <div className="h-80 mb-6">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={forecastData}>
+          <div className="h-80 mb-6 w-full overflow-x-auto">
+            <ResponsiveContainer width="100%" height="100%" minWidth={300}>
+              <LineChart data={forecastData} margin={{ top: 20, right: 20, left: 20, bottom: 20 }}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
+                <XAxis 
+                  dataKey="month" 
+                  tick={{ fontSize: 12 }}
+                  angle={-45}
+                  textAnchor="end"
+                  height={60}
+                />
+                <YAxis tick={{ fontSize: 12 }} />
                 <Tooltip formatter={(value: number) => [`$${value.toFixed(2)}`, '']} />
                 <Line 
                   type="monotone" 

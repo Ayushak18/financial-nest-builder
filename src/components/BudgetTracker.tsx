@@ -186,17 +186,17 @@ export const BudgetTracker = () => {
 
         {/* Financial Management Tabs */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-10 text-xs">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="accounts">Accounts</TabsTrigger>
-            <TabsTrigger value="investments">Investments</TabsTrigger>
-            <TabsTrigger value="net-worth">Net Worth</TabsTrigger>
-            <TabsTrigger value="debt">Debt</TabsTrigger>
-            <TabsTrigger value="goals">Goals</TabsTrigger>
-            <TabsTrigger value="recurring">Recurring</TabsTrigger>
-            <TabsTrigger value="bills">Bills</TabsTrigger>
-            <TabsTrigger value="trends">Trends</TabsTrigger>
-            <TabsTrigger value="forecast">Forecast</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-10 text-xs overflow-x-auto">
+            <TabsTrigger value="overview" className="whitespace-nowrap">Overview</TabsTrigger>
+            <TabsTrigger value="accounts" className="whitespace-nowrap">Accounts</TabsTrigger>
+            <TabsTrigger value="investments" className="whitespace-nowrap">Investments</TabsTrigger>
+            <TabsTrigger value="net-worth" className="whitespace-nowrap">Net Worth</TabsTrigger>
+            <TabsTrigger value="debt" className="whitespace-nowrap">Debt</TabsTrigger>
+            <TabsTrigger value="goals" className="whitespace-nowrap">Goals</TabsTrigger>
+            <TabsTrigger value="recurring" className="whitespace-nowrap">Recurring</TabsTrigger>
+            <TabsTrigger value="bills" className="whitespace-nowrap">Bills</TabsTrigger>
+            <TabsTrigger value="trends" className="whitespace-nowrap">Trends</TabsTrigger>
+            <TabsTrigger value="forecast" className="whitespace-nowrap">Forecast</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">

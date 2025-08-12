@@ -21,15 +21,17 @@ import { BudgetAlertsManager } from './BudgetAlertsManager';
 import { BillReminders } from './BillReminders';
 import { TrendAnalysis } from './TrendAnalysis';
 import { FinancialForecasting } from './FinancialForecasting';
+import { AppSidebar, type SidebarSection } from './AppSidebar';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Skeleton } from './ui/skeleton';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
+import { SidebarProvider, SidebarTrigger } from './ui/sidebar';
 
 export const BudgetTracker = () => {
   const [selectedMonth, setSelectedMonth] = useState(new Date().toLocaleString('default', { month: 'long' }));
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [accounts, setAccounts] = useState([]);
+  const [activeSection, setActiveSection] = useState<SidebarSection>("overview");
   
   const {
     budget,
@@ -109,143 +111,89 @@ export const BudgetTracker = () => {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-background p-4 md:p-6 lg:p-8">
-      <div className="max-w-7xl mx-auto space-y-8">
-        {/* User Profile & Header */}
-        <div className="flex flex-col gap-6 xl:flex-row xl:justify-between xl:items-start">
-          <div className="text-center xl:flex-1 space-y-2">
-            <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-primary to-success bg-clip-text text-transparent">
-              Monthly Budget Tracker
-            </h1>
-            <p className="text-muted-foreground text-base md:text-lg">
-              Take control of your finances with smart budget tracking
-            </p>
-          </div>
-          
-          {/* User Profile Dropdown */}
-          <div className="flex justify-center xl:justify-end">
-            <UserProfileDropdown user={user} />
-          </div>
-        </div>
-
-        {/* Month Selector */}
-        <MonthSelector 
-          selectedMonth={selectedMonth}
-          selectedYear={selectedYear}
-          onMonthChange={handleMonthChange}
-        />
-
-        {/* Budget Overview */}
-        <BudgetOverview 
-          budget={budget}
-          totalSpent={totalSpent}
-          remainingBudget={remainingBudget}
-        />
-
-        {/* Budget Setup */}
-        <BudgetSetup 
-          budget={budget}
-          onUpdateBudget={updateBudget}
-          getSpendingByType={getSpendingByType}
-        />
-
-        {/* Category Manager */}
-        <CategoryManager 
-          categories={budget.categories}
-          onAddCategory={addCategory}
-          onUpdateCategory={updateCategory}
-          onDeleteCategory={deleteCategory}
-          getCategoryProgress={getCategoryProgress}
-        />
-
-        {/* Transaction Form */}
-        <TransactionForm 
-          categories={budget.categories}
-          onAddTransaction={addTransaction}
-        />
-
-        {/* Budget Insights */}
-        <BudgetInsights
-          categories={budget.categories}
-          transactions={budget.transactions}
-          totalBudget={budget.totalBudget}
-          fixedBudget={budget.fixedBudget}
-          variableBudget={budget.variableBudget}
-          savingsBudget={budget.savingsBudget}
-          getSpendingByType={getSpendingByType}
-        />
-
-        {/* Export Data */}
-        <ExportData
-          budget={budget}
-          categories={budget.categories}
-          transactions={budget.transactions}
-          getSpendingByType={getSpendingByType}
-        />
-
-        {/* Financial Management Tabs */}
-        <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-10 text-xs overflow-x-auto">
-            <TabsTrigger value="overview" className="whitespace-nowrap">Overview</TabsTrigger>
-            <TabsTrigger value="accounts" className="whitespace-nowrap">Accounts</TabsTrigger>
-            <TabsTrigger value="investments" className="whitespace-nowrap">Investments</TabsTrigger>
-            <TabsTrigger value="net-worth" className="whitespace-nowrap">Net Worth</TabsTrigger>
-            <TabsTrigger value="debt" className="whitespace-nowrap">Debt</TabsTrigger>
-            <TabsTrigger value="goals" className="whitespace-nowrap">Goals</TabsTrigger>
-            <TabsTrigger value="recurring" className="whitespace-nowrap">Recurring</TabsTrigger>
-            <TabsTrigger value="bills" className="whitespace-nowrap">Bills</TabsTrigger>
-            <TabsTrigger value="trends" className="whitespace-nowrap">Trends</TabsTrigger>
-            <TabsTrigger value="forecast" className="whitespace-nowrap">Forecast</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="overview" className="space-y-6">
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-              <BankAccountManager user={user} />
-              <AccountTransfer user={user} accounts={accounts} onTransferComplete={fetchAccounts} />
-            </div>
-            <NetWorthDashboard user={user} />
-          </TabsContent>
-          
-          <TabsContent value="accounts" className="space-y-6">
+  const renderActiveSection = () => {
+    switch (activeSection) {
+      case "overview":
+        return <BudgetOverview budget={budget} totalSpent={totalSpent} remainingBudget={remainingBudget} />;
+      case "budget-setup":
+        return <BudgetSetup budget={budget} onUpdateBudget={updateBudget} getSpendingByType={getSpendingByType} />;
+      case "categories":
+        return <CategoryManager categories={budget.categories} onAddCategory={addCategory} onUpdateCategory={updateCategory} onDeleteCategory={deleteCategory} getCategoryProgress={getCategoryProgress} />;
+      case "add-transaction":
+        return <TransactionForm categories={budget.categories} onAddTransaction={addTransaction} />;
+      case "transactions":
+        return <TransactionList transactions={budget.transactions} categories={budget.categories} onDeleteTransaction={deleteTransaction} onUpdateTransaction={updateTransaction} />;
+      case "insights":
+        return <BudgetInsights categories={budget.categories} transactions={budget.transactions} totalBudget={budget.totalBudget} fixedBudget={budget.fixedBudget} variableBudget={budget.variableBudget} savingsBudget={budget.savingsBudget} getSpendingByType={getSpendingByType} />;
+      case "accounts":
+        return (
+          <div className="space-y-6">
             <BankAccountManager user={user} />
             <AccountTransfer user={user} accounts={accounts} onTransferComplete={fetchAccounts} />
-          </TabsContent>
-          <TabsContent value="investments">
-            <InvestmentTracker user={user} accounts={accounts} />
-          </TabsContent>
-          <TabsContent value="net-worth">
-            <NetWorthDashboard user={user} />
-          </TabsContent>
-          <TabsContent value="debt">
-            <DebtManager user={user} />
-          </TabsContent>
-          <TabsContent value="goals">
-            <FinancialGoalsTracker user={user} />
-          </TabsContent>
-          <TabsContent value="recurring" className="space-y-6">
+          </div>
+        );
+      case "investments":
+        return <InvestmentTracker user={user} accounts={accounts} />;
+      case "net-worth":
+        return <NetWorthDashboard user={user} />;
+      case "debt":
+        return <DebtManager user={user} />;
+      case "goals":
+        return <FinancialGoalsTracker user={user} />;
+      case "recurring":
+        return (
+          <div className="space-y-6">
             <RecurringTransactionsManager />
             <BudgetAlertsManager />
-          </TabsContent>
-          <TabsContent value="bills">
-            <BillReminders />
-          </TabsContent>
-          <TabsContent value="trends">
-            <TrendAnalysis />
-          </TabsContent>
-          <TabsContent value="forecast">
-            <FinancialForecasting />
-          </TabsContent>
-        </Tabs>
+          </div>
+        );
+      case "bills":
+        return <BillReminders />;
+      case "trends":
+        return <TrendAnalysis />;
+      case "forecast":
+        return <FinancialForecasting />;
+      case "export":
+        return <ExportData budget={budget} categories={budget.categories} transactions={budget.transactions} getSpendingByType={getSpendingByType} />;
+      default:
+        return <BudgetOverview budget={budget} totalSpent={totalSpent} remainingBudget={remainingBudget} />;
+    }
+  };
 
-        {/* Transaction List */}
-        <TransactionList 
-          transactions={budget.transactions}
-          categories={budget.categories}
-          onDeleteTransaction={deleteTransaction}
-          onUpdateTransaction={updateTransaction}
-        />
+  return (
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full bg-background">
+        <AppSidebar activeSection={activeSection} onSectionChange={setActiveSection} />
+        
+        <div className="flex-1 flex flex-col">
+          {/* Header */}
+          <header className="h-16 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center justify-between px-4 lg:px-6">
+            <div className="flex items-center gap-4">
+              <SidebarTrigger />
+              <div>
+                <h1 className="text-xl font-semibold">Monthly Budget Tracker</h1>
+                <p className="text-sm text-muted-foreground">Take control of your finances</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-4">
+              <MonthSelector 
+                selectedMonth={selectedMonth}
+                selectedYear={selectedYear}
+                onMonthChange={handleMonthChange}
+              />
+              <UserProfileDropdown user={user} />
+            </div>
+          </header>
+
+          {/* Main Content */}
+          <main className="flex-1 p-4 lg:p-6 overflow-auto">
+            <div className="max-w-7xl mx-auto">
+              {renderActiveSection()}
+            </div>
+          </main>
+        </div>
       </div>
-    </div>
+    </SidebarProvider>
   );
 };

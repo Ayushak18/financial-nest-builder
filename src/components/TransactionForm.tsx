@@ -7,19 +7,22 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Plus, Wallet } from 'lucide-react';
 import { BudgetCategory, Transaction } from '@/types/budget';
+import { BankAccount } from '@/types/financial';
 import { useToast } from '@/hooks/use-toast';
 
 interface TransactionFormProps {
   categories: BudgetCategory[];
-  onAddTransaction: (transaction: Omit<Transaction, 'id'>) => void;
+  bankAccounts: BankAccount[];
+  onAddTransaction: (transaction: Omit<Transaction, 'id'> & { accountId?: string }) => void;
 }
 
-export const TransactionForm = ({ categories, onAddTransaction }: TransactionFormProps) => {
+export const TransactionForm = ({ categories, bankAccounts, onAddTransaction }: TransactionFormProps) => {
   const { toast } = useToast();
   const [formData, setFormData] = useState({
     type: 'expense' as 'income' | 'expense',
     amount: '',
     categoryId: '',
+    accountId: '',
     description: '',
     date: new Date().toISOString().split('T')[0]
   });
@@ -40,6 +43,7 @@ export const TransactionForm = ({ categories, onAddTransaction }: TransactionFor
       type: formData.type,
       amount: Number(formData.amount),
       categoryId: formData.categoryId,
+      accountId: formData.accountId || undefined,
       description: formData.description || `${formData.type} - ${category?.name}`,
       date: new Date(formData.date)
     });
@@ -49,6 +53,7 @@ export const TransactionForm = ({ categories, onAddTransaction }: TransactionFor
       type: 'expense',
       amount: '',
       categoryId: '',
+      accountId: '',
       description: '',
       date: new Date().toISOString().split('T')[0]
     });
@@ -69,7 +74,7 @@ export const TransactionForm = ({ categories, onAddTransaction }: TransactionFor
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 mb-4">
           <div>
             <Label htmlFor="transactionType">Type</Label>
             <Select
@@ -133,6 +138,29 @@ export const TransactionForm = ({ categories, onAddTransaction }: TransactionFor
               value={formData.date}
               onChange={(e) => setFormData({ ...formData, date: e.target.value })}
             />
+          </div>
+
+          <div>
+            <Label htmlFor="transactionAccount">Account (Optional)</Label>
+            <Select
+              value={formData.accountId}
+              onValueChange={(value) => setFormData({ ...formData, accountId: value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select account" />
+              </SelectTrigger>
+              <SelectContent>
+                {bankAccounts.map((account) => (
+                  <SelectItem key={account.id} value={account.id}>
+                    <div className="flex items-center gap-2">
+                      <span className="capitalize">{account.account_type}</span>
+                      <span>•</span>
+                      <span>{account.name}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="flex items-end">

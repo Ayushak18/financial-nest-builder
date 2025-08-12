@@ -35,6 +35,7 @@ export const BudgetTracker = () => {
   
   const {
     budget,
+    bankAccounts,
     loading,
     user,
     updateBudget,
@@ -120,7 +121,7 @@ export const BudgetTracker = () => {
       case "categories":
         return <CategoryManager categories={budget.categories} onAddCategory={addCategory} onUpdateCategory={updateCategory} onDeleteCategory={deleteCategory} getCategoryProgress={getCategoryProgress} />;
       case "add-transaction":
-        return <TransactionForm categories={budget.categories} onAddTransaction={addTransaction} />;
+        return <TransactionForm categories={budget.categories} bankAccounts={bankAccounts} onAddTransaction={addTransaction} />;
       case "transactions":
         return <TransactionList transactions={budget.transactions} categories={budget.categories} onDeleteTransaction={deleteTransaction} onUpdateTransaction={updateTransaction} />;
       case "insights":

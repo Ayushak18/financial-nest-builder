@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { BudgetCategory, Transaction, MonthlyBudget } from '@/types/budget';
+import { BankAccount } from '@/types/financial';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -16,6 +17,7 @@ export const useBudget = (selectedMonth?: string, selectedYear?: number) => {
     categories: [],
     transactions: []
   });
+  const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
 
@@ -96,6 +98,27 @@ export const useBudget = (selectedMonth?: string, selectedYear?: number) => {
       .order('created_at', { ascending: false });
 
     if (transactionsError) throw transactionsError;
+
+    // Load bank accounts
+    const { data: accounts, error: accountsError } = await supabase
+      .from('bank_accounts')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('is_active', true);
+
+    if (accountsError) throw accountsError;
+
+    setBankAccounts(accounts?.map(acc => ({
+      id: acc.id,
+      user_id: acc.user_id,
+      name: acc.name,
+      account_type: acc.account_type as 'checking' | 'savings' | 'credit' | 'investment' | 'cash',
+      balance: Number(acc.balance),
+      currency: acc.currency,
+      is_active: acc.is_active,
+      created_at: acc.created_at,
+      updated_at: acc.updated_at
+    })) || []);
 
     // Transform data to match our types
     setBudget({
@@ -271,7 +294,7 @@ export const useBudget = (selectedMonth?: string, selectedYear?: number) => {
     }
   };
 
-  const addTransaction = async (transaction: Omit<Transaction, 'id'>) => {
+  const addTransaction = async (transaction: Omit<Transaction, 'id'> & { accountId?: string }) => {
     if (!user || !budget.id) return;
 
     try {
@@ -281,6 +304,7 @@ export const useBudget = (selectedMonth?: string, selectedYear?: number) => {
           budget_id: budget.id,
           category_id: transaction.categoryId,
           user_id: user.id,
+          account_id: transaction.accountId || null,
           description: transaction.description,
           amount: transaction.amount,
           type: transaction.type,
@@ -507,6 +531,7 @@ export const useBudget = (selectedMonth?: string, selectedYear?: number) => {
 
   return {
     budget,
+    bankAccounts,
     loading,
     user,
     updateBudget,

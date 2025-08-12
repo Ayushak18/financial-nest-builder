@@ -120,10 +120,13 @@ export const BudgetTracker = () => {
         return <BudgetSetup budget={budget} onUpdateBudget={updateBudget} getSpendingByType={getSpendingByType} />;
       case "categories":
         return <CategoryManager categories={budget.categories} onAddCategory={addCategory} onUpdateCategory={updateCategory} onDeleteCategory={deleteCategory} getCategoryProgress={getCategoryProgress} />;
-      case "add-transaction":
-        return <TransactionForm categories={budget.categories} bankAccounts={bankAccounts} onAddTransaction={addTransaction} />;
       case "transactions":
-        return <TransactionList transactions={budget.transactions} categories={budget.categories} onDeleteTransaction={deleteTransaction} onUpdateTransaction={updateTransaction} />;
+        return (
+          <div className="space-y-6">
+            <TransactionForm categories={budget.categories} bankAccounts={bankAccounts} onAddTransaction={addTransaction} />
+            <TransactionList transactions={budget.transactions} categories={budget.categories} onDeleteTransaction={deleteTransaction} onUpdateTransaction={updateTransaction} />
+          </div>
+        );
       case "insights":
         return <BudgetInsights categories={budget.categories} transactions={budget.transactions} totalBudget={budget.totalBudget} fixedBudget={budget.fixedBudget} variableBudget={budget.variableBudget} savingsBudget={budget.savingsBudget} getSpendingByType={getSpendingByType} />;
       case "accounts":
@@ -171,18 +174,20 @@ export const BudgetTracker = () => {
           <header className="h-16 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center justify-between px-4 lg:px-6">
             <div className="flex items-center gap-4">
               <SidebarTrigger />
-              <div>
-                <h1 className="text-xl font-semibold">Monthly Budget Tracker</h1>
-                <p className="text-sm text-muted-foreground">Take control of your finances</p>
+              <div className="flex items-center gap-6">
+                <div>
+                  <h1 className="text-xl font-semibold">Monthly Budget Tracker</h1>
+                  <p className="text-sm text-muted-foreground">Take control of your finances</p>
+                </div>
+                <MonthSelector 
+                  selectedMonth={selectedMonth}
+                  selectedYear={selectedYear}
+                  onMonthChange={handleMonthChange}
+                />
               </div>
             </div>
             
             <div className="flex items-center gap-4">
-              <MonthSelector 
-                selectedMonth={selectedMonth}
-                selectedYear={selectedYear}
-                onMonthChange={handleMonthChange}
-              />
               <UserProfileDropdown user={user} />
             </div>
           </header>

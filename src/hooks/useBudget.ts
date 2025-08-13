@@ -315,6 +315,27 @@ export const useBudget = (selectedMonth?: string, selectedYear?: number) => {
 
       if (error) throw error;
 
+      // Update account balance if account is specified
+      if (transaction.accountId) {
+        const account = bankAccounts.find(a => a.id === transaction.accountId);
+        if (account) {
+          const balanceChange = transaction.type === 'income' ? transaction.amount : -transaction.amount;
+          const newBalance = account.balance + balanceChange;
+          
+          await supabase
+            .from('bank_accounts')
+            .update({ balance: newBalance })
+            .eq('id', transaction.accountId);
+
+          // Update local bank accounts state
+          setBankAccounts(prev => prev.map(a => 
+            a.id === transaction.accountId 
+              ? { ...a, balance: newBalance }
+              : a
+          ));
+        }
+      }
+
       // Update category spent amount
       const category = budget.categories.find(cat => cat.id === transaction.categoryId);
       if (category) {
@@ -363,12 +384,69 @@ export const useBudget = (selectedMonth?: string, selectedYear?: number) => {
     }
   };
 
-  const updateTransaction = async (transactionId: string, updates: Partial<Transaction>) => {
+  const updateTransaction = async (transactionId: string, updates: Partial<Transaction> & { accountId?: string }) => {
     if (!user) return;
 
     try {
       const oldTransaction = budget.transactions.find(t => t.id === transactionId);
       if (!oldTransaction) return;
+
+      // Get current account_id from database
+      const { data: dbTransaction } = await supabase
+        .from('transactions')
+        .select('account_id')
+        .eq('id', transactionId)
+        .single();
+
+      const oldAccountId = dbTransaction?.account_id;
+      const newAccountId = updates.accountId !== undefined ? updates.accountId : oldAccountId;
+      const oldAmount = oldTransaction.amount;
+      const newAmount = updates.amount || oldTransaction.amount;
+      const oldType = oldTransaction.type;
+      const newType = updates.type || oldTransaction.type;
+
+      // Handle account balance changes
+      if (oldAccountId || newAccountId) {
+        // Revert old account balance
+        if (oldAccountId) {
+          const oldAccount = bankAccounts.find(a => a.id === oldAccountId);
+          if (oldAccount) {
+            const revertChange = oldType === 'income' ? -oldAmount : oldAmount;
+            const revertedBalance = oldAccount.balance + revertChange;
+            
+            await supabase
+              .from('bank_accounts')
+              .update({ balance: revertedBalance })
+              .eq('id', oldAccountId);
+
+            setBankAccounts(prev => prev.map(a => 
+              a.id === oldAccountId 
+                ? { ...a, balance: revertedBalance }
+                : a
+            ));
+          }
+        }
+
+        // Apply new account balance
+        if (newAccountId) {
+          const newAccount = bankAccounts.find(a => a.id === newAccountId);
+          if (newAccount) {
+            const balanceChange = newType === 'income' ? newAmount : -newAmount;
+            const newBalance = newAccount.balance + balanceChange;
+            
+            await supabase
+              .from('bank_accounts')
+              .update({ balance: newBalance })
+              .eq('id', newAccountId);
+
+            setBankAccounts(prev => prev.map(a => 
+              a.id === newAccountId 
+                ? { ...a, balance: newBalance }
+                : a
+            ));
+          }
+        }
+      }
 
       // Update transaction in database
       const { error } = await supabase
@@ -378,6 +456,7 @@ export const useBudget = (selectedMonth?: string, selectedYear?: number) => {
           amount: updates.amount,
           type: updates.type,
           category_id: updates.categoryId,
+          account_id: updates.accountId !== undefined ? updates.accountId : oldAccountId,
           date: updates.date?.toISOString()
         })
         .eq('id', transactionId);
@@ -453,6 +532,34 @@ export const useBudget = (selectedMonth?: string, selectedYear?: number) => {
     try {
       const transaction = budget.transactions.find(t => t.id === transactionId);
       if (!transaction) return;
+
+      // First check if transaction has account_id in the database
+      const { data: dbTransaction } = await supabase
+        .from('transactions')
+        .select('account_id')
+        .eq('id', transactionId)
+        .single();
+
+      // Revert account balance if account is specified
+      if (dbTransaction?.account_id) {
+        const account = bankAccounts.find(a => a.id === dbTransaction.account_id);
+        if (account) {
+          const balanceRevert = transaction.type === 'income' ? -transaction.amount : transaction.amount;
+          const newBalance = account.balance + balanceRevert;
+          
+          await supabase
+            .from('bank_accounts')
+            .update({ balance: newBalance })
+            .eq('id', dbTransaction.account_id);
+
+          // Update local bank accounts state
+          setBankAccounts(prev => prev.map(a => 
+            a.id === dbTransaction.account_id 
+              ? { ...a, balance: newBalance }
+              : a
+          ));
+        }
+      }
 
       const { error } = await supabase
         .from('transactions')

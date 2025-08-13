@@ -31,7 +31,7 @@ export const BudgetTracker = () => {
   const [selectedMonth, setSelectedMonth] = useState(new Date().toLocaleString('default', { month: 'long' }));
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [accounts, setAccounts] = useState([]);
-  const [activeSection, setActiveSection] = useState<SidebarSection>("overview");
+  const [activeSection, setActiveSection] = useState<SidebarSection>("budget");
   
   const {
     budget,
@@ -114,12 +114,14 @@ export const BudgetTracker = () => {
 
   const renderActiveSection = () => {
     switch (activeSection) {
-      case "overview":
-        return <BudgetOverview budget={budget} totalSpent={totalSpent} remainingBudget={remainingBudget} />;
-      case "budget-setup":
-        return <BudgetSetup budget={budget} onUpdateBudget={updateBudget} getSpendingByType={getSpendingByType} />;
-      case "categories":
-        return <CategoryManager categories={budget.categories} onAddCategory={addCategory} onUpdateCategory={updateCategory} onDeleteCategory={deleteCategory} getCategoryProgress={getCategoryProgress} />;
+      case "budget":
+        return (
+          <div className="space-y-8">
+            <BudgetOverview budget={budget} totalSpent={totalSpent} remainingBudget={remainingBudget} />
+            <BudgetSetup budget={budget} onUpdateBudget={updateBudget} getSpendingByType={getSpendingByType} />
+            <CategoryManager categories={budget.categories} onAddCategory={addCategory} onUpdateCategory={updateCategory} onDeleteCategory={deleteCategory} getCategoryProgress={getCategoryProgress} />
+          </div>
+        );
       case "transactions":
         return (
           <div className="space-y-6">
@@ -160,7 +162,13 @@ export const BudgetTracker = () => {
       case "export":
         return <ExportData budget={budget} categories={budget.categories} transactions={budget.transactions} getSpendingByType={getSpendingByType} />;
       default:
-        return <BudgetOverview budget={budget} totalSpent={totalSpent} remainingBudget={remainingBudget} />;
+        return (
+          <div className="space-y-8">
+            <BudgetOverview budget={budget} totalSpent={totalSpent} remainingBudget={remainingBudget} />
+            <BudgetSetup budget={budget} onUpdateBudget={updateBudget} getSpendingByType={getSpendingByType} />
+            <CategoryManager categories={budget.categories} onAddCategory={addCategory} onUpdateCategory={updateCategory} onDeleteCategory={deleteCategory} getCategoryProgress={getCategoryProgress} />
+          </div>
+        );
     }
   };
 

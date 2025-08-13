@@ -34,20 +34,18 @@ import {
 } from "@/components/ui/sidebar";
 
 export type SidebarSection = 
-  | "overview"
-  | "budget-setup"
-  | "categories"
-  | "transactions"
-  | "insights"
-  | "accounts"
-  | "investments"
-  | "net-worth"
-  | "debt"
-  | "goals"
-  | "recurring"
-  | "bills"
-  | "trends"
-  | "forecast"
+  | "budget" 
+  | "transactions" 
+  | "insights" 
+  | "accounts" 
+  | "investments" 
+  | "net-worth" 
+  | "debt" 
+  | "goals" 
+  | "recurring" 
+  | "bills" 
+  | "trends" 
+  | "forecast" 
   | "export";
 
 interface AppSidebarProps {
@@ -56,9 +54,7 @@ interface AppSidebarProps {
 }
 
 const budgetItems = [
-  { title: "Overview", section: "overview" as const, icon: Home },
-  { title: "Budget Setup", section: "budget-setup" as const, icon: Settings },
-  { title: "Categories", section: "categories" as const, icon: Target },
+  { title: "Budget Management", section: "budget" as const, icon: Home },
   { title: "Transactions", section: "transactions" as const, icon: List },
   { title: "Insights", section: "insights" as const, icon: BarChart3 },
 ];

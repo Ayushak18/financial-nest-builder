@@ -6,7 +6,7 @@ import { BudgetSetup } from './BudgetSetup';
 import { CategoryManager } from './CategoryManager';
 import { TransactionForm } from './TransactionForm';
 import { TransactionList } from './TransactionList';
-import { MonthSelector } from './MonthSelector';
+import { CompactMonthSelector } from './CompactMonthSelector';
 import { UserProfileDropdown } from './UserProfileDropdown';
 import { BudgetInsights } from './BudgetInsights';
 import { ExportData } from './ExportData';
@@ -174,20 +174,18 @@ export const BudgetTracker = () => {
           <header className="h-16 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center justify-between px-4 lg:px-6">
             <div className="flex items-center gap-4">
               <SidebarTrigger />
-              <div className="flex items-center gap-6">
-                <div>
-                  <h1 className="text-xl font-semibold">Monthly Budget Tracker</h1>
-                  <p className="text-sm text-muted-foreground">Take control of your finances</p>
-                </div>
-                <MonthSelector 
-                  selectedMonth={selectedMonth}
-                  selectedYear={selectedYear}
-                  onMonthChange={handleMonthChange}
-                />
+              <div>
+                <h1 className="text-xl font-semibold">Monthly Budget Tracker</h1>
+                <p className="text-sm text-muted-foreground">Take control of your finances</p>
               </div>
             </div>
             
             <div className="flex items-center gap-4">
+              <CompactMonthSelector 
+                selectedMonth={selectedMonth}
+                selectedYear={selectedYear}
+                onMonthChange={handleMonthChange}
+              />
               <UserProfileDropdown user={user} />
             </div>
           </header>

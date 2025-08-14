@@ -153,12 +153,12 @@ export const InvestmentTracker = ({ user, accounts }: InvestmentTrackerProps) =>
         {/* Summary */}
         <div className="grid grid-cols-2 gap-4">
           <div className="p-4 bg-accent rounded-lg">
-            <div className="text-2xl font-bold">${totalInvestmentValue.toFixed(2)}</div>
+            <div className="text-2xl font-bold">₹{totalInvestmentValue.toFixed(2)}</div>
             <div className="text-sm text-muted-foreground">Total Value</div>
           </div>
           <div className="p-4 bg-accent rounded-lg">
             <div className={`text-2xl font-bold ${totalGainLoss >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {totalGainLoss >= 0 ? '+' : ''}${totalGainLoss.toFixed(2)}
+              {totalGainLoss >= 0 ? '+' : ''}₹{totalGainLoss.toFixed(2)}
             </div>
             <div className="text-sm text-muted-foreground">Total Gain/Loss</div>
           </div>
@@ -297,9 +297,9 @@ export const InvestmentTracker = ({ user, accounts }: InvestmentTrackerProps) =>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="text-right">
-                    <div className="font-medium">${currentValue.toFixed(2)}</div>
+                    <div className="font-medium">₹{currentValue.toFixed(2)}</div>
                     <div className={`text-sm ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
-                      {isPositive ? '+' : ''}${gainLoss.toFixed(2)} ({isPositive ? '+' : ''}{percentage.toFixed(2)}%)
+                      {isPositive ? '+' : ''}₹{gainLoss.toFixed(2)} ({isPositive ? '+' : ''}{percentage.toFixed(2)}%)
                     </div>
                   </div>
                   <Button

@@ -115,7 +115,7 @@ export function BudgetAlertsManager() {
                       </Badge>
                     </div>
                     <AlertDescription>
-                      You've spent ${alert.spent.toFixed(2)} of your ${alert.budgetAmount.toFixed(2)} budget.
+                      You've spent ₹{alert.spent.toFixed(2)} of your ₹{alert.budgetAmount.toFixed(2)} budget.
                       {alert.severity === 'danger' 
                         ? ' You have exceeded your budget limit!'
                         : ' You\'re approaching your budget limit.'

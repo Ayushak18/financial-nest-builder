@@ -47,7 +47,7 @@ export function TrendAnalysis() {
         .from('transactions')
         .select(`
           *,
-          budget_categories!inner(name, color)
+          budget_categories(name, color)
         `)
         .eq('user_id', user.id)
         .gte('date', startDate.toISOString())
@@ -59,9 +59,9 @@ export function TrendAnalysis() {
       const monthlyData: { [key: string]: { income: number; expenses: number } } = {};
       const categoryData: { [key: string]: { amount: number; color: string; transactions: any[] } } = {};
 
-      transactions?.forEach((transaction) => {
+      transactions?.forEach((transaction: any) => {
         const month = new Date(transaction.date).toISOString().slice(0, 7); // YYYY-MM format
-        const categoryName = transaction.budget_categories.name;
+        const categoryName = transaction.budget_categories?.name || 'Unknown Category';
         const amount = parseFloat(transaction.amount.toString());
 
         // Monthly data
@@ -79,7 +79,7 @@ export function TrendAnalysis() {
         if (!categoryData[categoryName]) {
           categoryData[categoryName] = {
             amount: 0,
-            color: transaction.budget_categories.color,
+            color: transaction.budget_categories?.color || '#3B82F6',
             transactions: []
           };
         }
@@ -149,16 +149,16 @@ export function TrendAnalysis() {
           <div className="flex justify-between items-center mb-6">
             <div className="flex gap-4">
               <div className="text-center">
-                <div className="text-2xl font-bold text-green-600">${totalIncome.toFixed(2)}</div>
+                <div className="text-2xl font-bold text-green-600">₹{totalIncome.toFixed(2)}</div>
                 <div className="text-sm text-muted-foreground">Total Income</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-red-600">${totalExpenses.toFixed(2)}</div>
+                <div className="text-2xl font-bold text-red-600">₹{totalExpenses.toFixed(2)}</div>
                 <div className="text-sm text-muted-foreground">Total Expenses</div>
               </div>
               <div className="text-center">
                 <div className={`text-2xl font-bold ${avgMonthlyNet >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  ${avgMonthlyNet.toFixed(2)}
+                  ₹{avgMonthlyNet.toFixed(2)}
                 </div>
                 <div className="text-sm text-muted-foreground">Avg Monthly Net</div>
               </div>
@@ -187,7 +187,7 @@ export function TrendAnalysis() {
                   height={60}
                 />
                 <YAxis tick={{ fontSize: 12 }} />
-                <Tooltip formatter={(value: number) => [`$${value.toFixed(2)}`, '']} />
+                <Tooltip formatter={(value: number) => [`₹${value.toFixed(2)}`, '']} />
                 <Line 
                   type="monotone" 
                   dataKey="income" 
@@ -237,7 +237,7 @@ export function TrendAnalysis() {
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value: number) => [`$${value.toFixed(2)}`, 'Amount']} />
+                  <Tooltip formatter={(value: number) => [`₹${value.toFixed(2)}`, 'Amount']} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
@@ -261,7 +261,7 @@ export function TrendAnalysis() {
                     <span className="font-medium">{category.name}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm">${category.amount.toFixed(2)}</span>
+                    <span className="text-sm">₹{category.amount.toFixed(2)}</span>
                     <Badge 
                       variant={category.change >= 0 ? 'destructive' : 'default'}
                       className="flex items-center gap-1"

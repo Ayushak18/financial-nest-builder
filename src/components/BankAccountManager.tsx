@@ -140,7 +140,7 @@ export const BankAccountManager = ({ user }: BankAccountManagerProps) => {
       <CardContent className="space-y-6">
         {/* Summary */}
         <div className="p-4 bg-accent rounded-lg">
-          <div className="text-2xl font-bold">${totalBalance.toFixed(2)}</div>
+          <div className="text-2xl font-bold">₹{totalBalance.toFixed(2)}</div>
           <div className="text-sm text-muted-foreground">Total Balance</div>
         </div>
 
@@ -232,7 +232,7 @@ export const BankAccountManager = ({ user }: BankAccountManagerProps) => {
                 <div className="flex items-center gap-3">
                   <div className="text-right">
                     <div className="font-medium">
-                      ${account.balance.toFixed(2)}
+                      ₹{account.balance.toFixed(2)}
                     </div>
                     <div className="text-sm text-muted-foreground">
                       {account.currency}

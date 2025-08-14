@@ -222,7 +222,7 @@ export const FinancialGoalsTracker = ({ user }: FinancialGoalsTrackerProps) => {
           </div>
           <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
             <div className="text-2xl font-bold text-purple-700">
-              ${activeGoals.reduce((sum, goal) => sum + goal.target_amount, 0).toFixed(0)}
+              ₹{activeGoals.reduce((sum, goal) => sum + goal.target_amount, 0).toFixed(0)}
             </div>
             <div className="text-sm text-purple-600">Total Target</div>
           </div>
@@ -368,12 +368,12 @@ export const FinancialGoalsTracker = ({ user }: FinancialGoalsTrackerProps) => {
                       <div className="flex justify-between items-center">
                         <span className="text-sm text-muted-foreground">Progress</span>
                         <span className="text-sm font-medium">
-                          ${goal.current_amount.toFixed(2)} / ${goal.target_amount.toFixed(2)}
+                          ₹{goal.current_amount.toFixed(2)} / ₹{goal.target_amount.toFixed(2)}
                         </span>
                       </div>
                       <Progress value={Math.min(progress, 100)} className="h-3" />
                       <div className="text-xs text-muted-foreground">
-                        {progress.toFixed(1)}% complete • ${(goal.target_amount - goal.current_amount).toFixed(2)} remaining
+                        {progress.toFixed(1)}% complete • ₹{(goal.target_amount - goal.current_amount).toFixed(2)} remaining
                       </div>
                     </div>
 
@@ -427,7 +427,7 @@ export const FinancialGoalsTracker = ({ user }: FinancialGoalsTrackerProps) => {
                       <div>
                         <div className="font-medium text-green-800">{goal.name}</div>
                         <div className="text-sm text-green-600">
-                          ${goal.current_amount.toFixed(2)} / ${goal.target_amount.toFixed(2)}
+                          ₹{goal.current_amount.toFixed(2)} / ₹{goal.target_amount.toFixed(2)}
                         </div>
                       </div>
                     </div>

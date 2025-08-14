@@ -328,8 +328,8 @@ export const CategoryManager = ({
                       
                       <div className="space-y-2">
                         <div className="flex justify-between text-sm">
-                          <span>Spent: ${category.spent.toLocaleString()}</span>
-                          <span>Budget: ${category.budgetAmount.toLocaleString()}</span>
+                          <span>Spent: ₹{category.spent.toLocaleString()}</span>
+                          <span>Budget: ₹{category.budgetAmount.toLocaleString()}</span>
                         </div>
                         
                         <Progress 
@@ -344,7 +344,7 @@ export const CategoryManager = ({
                           <span className={`text-xs font-medium ${
                             isOverBudget ? 'text-destructive' : 'text-success'
                           }`}>
-                            ${Math.abs(category.budgetAmount - category.spent).toLocaleString()} {
+                            ₹{Math.abs(category.budgetAmount - category.spent).toLocaleString()} {
                               isOverBudget ? 'over' : 'remaining'
                             }
                           </span>

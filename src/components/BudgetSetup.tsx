@@ -90,7 +90,7 @@ export const BudgetSetup = ({ budget, onUpdateBudget, getSpendingByType }: Budge
               />
             ) : (
               <div className="text-2xl font-bold text-primary">
-                ${budget.totalBudget.toLocaleString()}
+                ₹{budget.totalBudget.toLocaleString()}
               </div>
             )}
           </div>
@@ -111,10 +111,10 @@ export const BudgetSetup = ({ budget, onUpdateBudget, getSpendingByType }: Budge
             ) : (
               <div className="space-y-1">
                 <div className="text-2xl font-bold" style={{ color: 'hsl(var(--category-fixed))' }}>
-                  ${budget.fixedBudget.toLocaleString()}
+                  ₹{budget.fixedBudget.toLocaleString()}
                 </div>
                 <div className="text-sm text-muted-foreground">
-                  Spent: ${fixedSpent.toLocaleString()}
+                  Spent: ₹{fixedSpent.toLocaleString()}
                 </div>
               </div>
             )}
@@ -136,10 +136,10 @@ export const BudgetSetup = ({ budget, onUpdateBudget, getSpendingByType }: Budge
             ) : (
               <div className="space-y-1">
                 <div className="text-2xl font-bold" style={{ color: 'hsl(var(--category-variable))' }}>
-                  ${budget.variableBudget.toLocaleString()}
+                  ₹{budget.variableBudget.toLocaleString()}
                 </div>
                 <div className="text-sm text-muted-foreground">
-                  Spent: ${variableSpent.toLocaleString()}
+                  Spent: ₹{variableSpent.toLocaleString()}
                 </div>
               </div>
             )}
@@ -161,10 +161,10 @@ export const BudgetSetup = ({ budget, onUpdateBudget, getSpendingByType }: Budge
             ) : (
               <div className="space-y-1">
                 <div className="text-2xl font-bold" style={{ color: 'hsl(var(--category-savings))' }}>
-                  ${budget.savingsBudget.toLocaleString()}
+                  ₹{budget.savingsBudget.toLocaleString()}
                 </div>
                 <div className="text-sm text-muted-foreground">
-                  Contributed: ${savingsSpent.toLocaleString()}
+                  Contributed: ₹{savingsSpent.toLocaleString()}
                 </div>
               </div>
             )}

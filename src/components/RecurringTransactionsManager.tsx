@@ -287,7 +287,7 @@ export function RecurringTransactionsManager() {
                   </Badge>
                 </div>
                 <div className="text-sm text-muted-foreground">
-                  Amount: ${transaction.amount} • Next: {new Date(transaction.next_occurrence).toLocaleDateString()}
+                  Amount: ₹{transaction.amount} • Next: {new Date(transaction.next_occurrence).toLocaleDateString()}
                 </div>
               </div>
               <Button

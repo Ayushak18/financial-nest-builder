@@ -156,11 +156,11 @@ export const DebtManager = ({ user }: DebtManagerProps) => {
         {/* Summary */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-            <div className="text-2xl font-bold text-red-700">${totalDebt.toFixed(2)}</div>
+            <div className="text-2xl font-bold text-red-700">₹{totalDebt.toFixed(2)}</div>
             <div className="text-sm text-red-600">Total Debt</div>
           </div>
           <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
-            <div className="text-2xl font-bold text-orange-700">${totalMinimumPayments.toFixed(2)}</div>
+            <div className="text-2xl font-bold text-orange-700">₹{totalMinimumPayments.toFixed(2)}</div>
             <div className="text-sm text-orange-600">Min. Payments/Month</div>
           </div>
           <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
@@ -279,7 +279,7 @@ export const DebtManager = ({ user }: DebtManagerProps) => {
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="text-right">
-                      <div className="font-medium text-red-600">${debt.balance.toFixed(2)}</div>
+                      <div className="font-medium text-red-600">₹{debt.balance.toFixed(2)}</div>
                       <div className="text-sm text-muted-foreground">
                         {debt.interest_rate}% APR
                       </div>
@@ -297,7 +297,7 @@ export const DebtManager = ({ user }: DebtManagerProps) => {
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <div className="text-muted-foreground">Minimum Payment</div>
-                    <div className="font-medium">${debt.minimum_payment.toFixed(2)}</div>
+                    <div className="font-medium">₹{debt.minimum_payment.toFixed(2)}</div>
                   </div>
                   <div>
                     <div className="text-muted-foreground">Payoff Time</div>

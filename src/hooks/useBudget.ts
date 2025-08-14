@@ -86,7 +86,7 @@ export const useBudget = (selectedMonth?: string, selectedYear?: number) => {
     const { data: categories, error: categoriesError } = await supabase
       .from('budget_categories')
       .select('*')
-      .eq('budget_id', monthlyBudget.id);
+      .eq('monthly_budget_id', monthlyBudget.id);
 
     if (categoriesError) throw categoriesError;
 
@@ -94,7 +94,7 @@ export const useBudget = (selectedMonth?: string, selectedYear?: number) => {
     const { data: transactions, error: transactionsError } = await supabase
       .from('transactions')
       .select('*')
-      .eq('budget_id', monthlyBudget.id)
+      .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
     if (transactionsError) throw transactionsError;
@@ -186,7 +186,7 @@ export const useBudget = (selectedMonth?: string, selectedYear?: number) => {
       const { data, error } = await supabase
         .from('budget_categories')
         .insert({
-          budget_id: budget.id,
+          monthly_budget_id: budget.id,
           user_id: user.id,
           name: category.name,
           budget_amount: category.budgetAmount,
@@ -301,7 +301,6 @@ export const useBudget = (selectedMonth?: string, selectedYear?: number) => {
       const { data, error } = await supabase
         .from('transactions')
         .insert({
-          budget_id: budget.id,
           category_id: transaction.categoryId,
           user_id: user.id,
           account_id: transaction.accountId || null,

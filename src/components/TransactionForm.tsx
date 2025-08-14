@@ -60,7 +60,7 @@ export const TransactionForm = ({ categories, bankAccounts, onAddTransaction }: 
 
     toast({
       title: "Transaction added",
-      description: `Successfully added ${formData.type} of $${formData.amount}`,
+      description: `Successfully added ${formData.type} of ₹${formData.amount}`,
       variant: "default"
     });
   };

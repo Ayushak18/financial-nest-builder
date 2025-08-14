@@ -301,7 +301,7 @@ export function BillReminders() {
                     )}
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    ${bill.amount} • Due on {bill.due_date}th • {bill.category}
+                    ₹{bill.amount} • Due on {bill.due_date}th • {bill.category}
                     {!bill.is_paid && (
                       <span className="ml-2">
                         {daysUntilDue > 0 ? `${daysUntilDue} days remaining` : 'Overdue'}

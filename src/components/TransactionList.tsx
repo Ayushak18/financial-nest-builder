@@ -204,7 +204,7 @@ export const TransactionList = ({ transactions, categories, onDeleteTransaction,
                     <span className={`font-bold ${
                       isIncome ? 'text-success' : 'text-destructive'
                     }`}>
-                      {isIncome ? '+' : '-'}${transaction.amount.toLocaleString()}
+                      {isIncome ? '+' : '-'}₹{transaction.amount.toLocaleString()}
                     </span>
                     
                     <Button

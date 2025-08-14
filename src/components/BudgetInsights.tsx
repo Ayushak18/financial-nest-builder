@@ -176,7 +176,7 @@ export const BudgetInsights = ({
         <Card>
           <CardContent className="p-4">
             <div className="text-2xl font-bold text-primary">
-              ${(totalBudget - (spendingByType.fixed + spendingByType.variable + spendingByType.savings)).toFixed(2)}
+              ₹{(totalBudget - (spendingByType.fixed + spendingByType.variable + spendingByType.savings)).toFixed(2)}
             </div>
             <p className="text-sm text-muted-foreground">Remaining Budget</p>
           </CardContent>
@@ -184,7 +184,7 @@ export const BudgetInsights = ({
         <Card>
           <CardContent className="p-4">
             <div className="text-2xl font-bold text-green-600">
-              ${spendingByType.savings.toFixed(2)}
+              ₹{spendingByType.savings.toFixed(2)}
             </div>
             <p className="text-sm text-muted-foreground">Total Savings</p>
           </CardContent>

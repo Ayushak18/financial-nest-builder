@@ -199,19 +199,19 @@ export function FinancialForecasting() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="text-center">
                 <div className="text-2xl font-bold text-blue-600">
-                  ${forecastData.length > 0 ? forecastData[forecastData.length - 1].projectedBalance.toFixed(2) : '0.00'}
+                  ₹{forecastData.length > 0 ? forecastData[forecastData.length - 1].projectedBalance.toFixed(2) : '0.00'}
                 </div>
                 <div className="text-sm text-muted-foreground">Projected Balance</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-green-600">
-                  ${forecastData.reduce((sum, m) => sum + m.projectedIncome, 0).toFixed(2)}
+                  ₹{forecastData.reduce((sum, m) => sum + m.projectedIncome, 0).toFixed(2)}
                 </div>
                 <div className="text-sm text-muted-foreground">Total Projected Income</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-red-600">
-                  ${forecastData.reduce((sum, m) => sum + m.projectedExpenses, 0).toFixed(2)}
+                  ₹{forecastData.reduce((sum, m) => sum + m.projectedExpenses, 0).toFixed(2)}
                 </div>
                 <div className="text-sm text-muted-foreground">Total Projected Expenses</div>
               </div>
@@ -240,7 +240,7 @@ export function FinancialForecasting() {
                   height={60}
                 />
                 <YAxis tick={{ fontSize: 12 }} />
-                <Tooltip formatter={(value: number) => [`$${value.toFixed(2)}`, '']} />
+                <Tooltip formatter={(value: number) => [`₹${value.toFixed(2)}`, '']} />
                 <Line 
                   type="monotone" 
                   dataKey="projectedIncome" 
@@ -311,11 +311,11 @@ export function FinancialForecasting() {
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <div className="text-muted-foreground">Current Balance</div>
-                    <div className="font-medium">${projection.currentBalance.toFixed(2)}</div>
+                    <div className="font-medium">₹{projection.currentBalance.toFixed(2)}</div>
                   </div>
                   <div>
                     <div className="text-muted-foreground">Projected Balance</div>
-                    <div className="font-medium">${projection.projectedBalance.toFixed(2)}</div>
+                    <div className="font-medium">₹{projection.projectedBalance.toFixed(2)}</div>
                   </div>
                 </div>
 

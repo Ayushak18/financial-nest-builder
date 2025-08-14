@@ -149,7 +149,7 @@ export const NetWorthDashboard = ({ user }: NetWorthDashboardProps) => {
               <TrendingUp className="h-5 w-5 text-green-600" />
               <span className="text-sm font-medium text-green-800">Net Worth</span>
             </div>
-            <div className={`text-3xl font-bold ${netWorthData.netWorth >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+            <div className={`text-3xl font-bold ${netWorthData.netWorth >= 0 ? 'text-green-700' : 'text-red-700'}`}>₹
               {formatCurrency(netWorthData.netWorth)}
             </div>
           </div>

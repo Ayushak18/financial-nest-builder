@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -137,10 +137,10 @@ export type Database = {
       budget_categories: {
         Row: {
           budget_amount: number
-          budget_id: string
           color: string
           created_at: string
           id: string
+          monthly_budget_id: string
           name: string
           spent: number
           type: string
@@ -149,10 +149,10 @@ export type Database = {
         }
         Insert: {
           budget_amount?: number
-          budget_id: string
           color?: string
           created_at?: string
           id?: string
+          monthly_budget_id: string
           name: string
           spent?: number
           type: string
@@ -161,25 +161,17 @@ export type Database = {
         }
         Update: {
           budget_amount?: number
-          budget_id?: string
           color?: string
           created_at?: string
           id?: string
+          monthly_budget_id?: string
           name?: string
           spent?: number
           type?: string
           updated_at?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "budget_categories_budget_id_fkey"
-            columns: ["budget_id"]
-            isOneToOne: false
-            referencedRelation: "monthly_budgets"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       debts: {
         Row: {
@@ -399,57 +391,42 @@ export type Database = {
       }
       transactions: {
         Row: {
-          account_id: string | null
+          account_id: string
           amount: number
-          budget_id: string
           category_id: string
           created_at: string
           date: string
           description: string
           id: string
           type: string
+          updated_at: string
           user_id: string
         }
         Insert: {
-          account_id?: string | null
+          account_id: string
           amount: number
-          budget_id: string
           category_id: string
           created_at?: string
           date?: string
           description: string
           id?: string
           type: string
+          updated_at?: string
           user_id: string
         }
         Update: {
-          account_id?: string | null
+          account_id?: string
           amount?: number
-          budget_id?: string
           category_id?: string
           created_at?: string
           date?: string
           description?: string
           id?: string
           type?: string
+          updated_at?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "transactions_budget_id_fkey"
-            columns: ["budget_id"]
-            isOneToOne: false
-            referencedRelation: "monthly_budgets"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "transactions_category_id_fkey"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "budget_categories"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
     }
     Views: {

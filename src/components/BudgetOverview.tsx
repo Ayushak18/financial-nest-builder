@@ -25,7 +25,7 @@ export const BudgetOverview = ({ budget, totalSpent, remainingBudget }: BudgetOv
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold text-foreground">
-            ${budget.totalBudget.toLocaleString()}
+            ₹{budget.totalBudget.toLocaleString()}
           </div>
           <p className="text-xs text-muted-foreground">
             {budget.month} {budget.year}
@@ -42,7 +42,7 @@ export const BudgetOverview = ({ budget, totalSpent, remainingBudget }: BudgetOv
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold text-foreground">
-            ${totalSpent.toLocaleString()}
+            ₹{totalSpent.toLocaleString()}
           </div>
           <div className="flex items-center space-x-2 mt-2">
             <Progress 
@@ -65,7 +65,7 @@ export const BudgetOverview = ({ budget, totalSpent, remainingBudget }: BudgetOv
         </CardHeader>
         <CardContent>
           <div className={`text-2xl font-bold ${remainingBudget >= 0 ? 'text-success' : 'text-destructive'}`}>
-            ${Math.abs(remainingBudget).toLocaleString()}
+            ₹{Math.abs(remainingBudget).toLocaleString()}
           </div>
           <p className="text-xs text-muted-foreground">
             {remainingBudget >= 0 ? 'Under budget' : 'Over budget'}

@@ -13,7 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 interface TransactionFormProps {
   categories: BudgetCategory[];
   bankAccounts: BankAccount[];
-  onAddTransaction: (transaction: Omit<Transaction, 'id'> & { accountId?: string }) => void;
+  onAddTransaction: (transaction: Omit<Transaction, 'id'> & { accountId?: string; receivingAccountId?: string }) => void;
 }
 
 export const TransactionForm = ({ categories, bankAccounts, onAddTransaction }: TransactionFormProps) => {
@@ -23,6 +23,7 @@ export const TransactionForm = ({ categories, bankAccounts, onAddTransaction }: 
     amount: '',
     categoryId: '',
     accountId: '',
+    receivingAccountId: '',
     description: '',
     date: new Date().toISOString().split('T')[0]
   });
@@ -44,6 +45,7 @@ export const TransactionForm = ({ categories, bankAccounts, onAddTransaction }: 
       amount: Number(formData.amount),
       categoryId: formData.categoryId,
       accountId: formData.accountId || undefined,
+      receivingAccountId: formData.receivingAccountId || undefined,
       description: formData.description || `${formData.type} - ${category?.name}`,
       date: new Date(formData.date)
     });
@@ -54,6 +56,7 @@ export const TransactionForm = ({ categories, bankAccounts, onAddTransaction }: 
       amount: '',
       categoryId: '',
       accountId: '',
+      receivingAccountId: '',
       description: '',
       date: new Date().toISOString().split('T')[0]
     });
@@ -80,7 +83,7 @@ export const TransactionForm = ({ categories, bankAccounts, onAddTransaction }: 
             <Select
               value={formData.type}
               onValueChange={(value: 'income' | 'expense' | 'savings') => 
-                setFormData({ ...formData, type: value })
+                setFormData({ ...formData, type: value, receivingAccountId: value !== 'savings' ? '' : formData.receivingAccountId })
               }
             >
               <SelectTrigger>
@@ -142,7 +145,9 @@ export const TransactionForm = ({ categories, bankAccounts, onAddTransaction }: 
           </div>
 
           <div>
-            <Label htmlFor="transactionAccount">Account (Optional)</Label>
+            <Label htmlFor="transactionAccount">
+              {formData.type === 'savings' ? 'From Account' : 'Account (Optional)'}
+            </Label>
             <Select
               value={formData.accountId}
               onValueChange={(value) => setFormData({ ...formData, accountId: value })}
@@ -164,7 +169,34 @@ export const TransactionForm = ({ categories, bankAccounts, onAddTransaction }: 
             </Select>
           </div>
 
-          <div className="flex items-end">
+          {formData.type === 'savings' && (
+            <div>
+              <Label htmlFor="receivingAccount">To Account (Optional)</Label>
+              <Select
+                value={formData.receivingAccountId}
+                onValueChange={(value) => setFormData({ ...formData, receivingAccountId: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select receiving account" />
+                </SelectTrigger>
+                <SelectContent>
+                  {bankAccounts
+                    .filter(account => account.id !== formData.accountId)
+                    .map((account) => (
+                    <SelectItem key={account.id} value={account.id}>
+                      <div className="flex items-center gap-2">
+                        <span className="capitalize">{account.account_type}</span>
+                        <span>•</span>
+                        <span>{account.name}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          <div className={`flex items-end ${formData.type === 'savings' ? 'lg:col-start-6' : ''}`}>
             <Button 
               onClick={handleSubmit}
               disabled={!formData.amount || !formData.categoryId || categories.length === 0}

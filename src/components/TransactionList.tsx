@@ -73,6 +73,7 @@ export const TransactionList = ({ transactions, categories, onDeleteTransaction,
           <div className="space-y-3 max-h-96 overflow-y-auto">
             {sortedTransactions.map((transaction) => {
               const isIncome = transaction.type === 'income';
+              const isSavings = transaction.type === 'savings';
               const isEditing = editingId === transaction.id;
               
               if (isEditing) {
@@ -104,7 +105,7 @@ export const TransactionList = ({ transactions, categories, onDeleteTransaction,
                       <div>
                         <Select
                           value={editForm.type || transaction.type}
-                          onValueChange={(value: 'income' | 'expense') => setEditForm({ ...editForm, type: value })}
+                          onValueChange={(value: 'income' | 'expense' | 'savings') => setEditForm({ ...editForm, type: value })}
                         >
                           <SelectTrigger className="text-sm">
                             <SelectValue />
@@ -112,6 +113,7 @@ export const TransactionList = ({ transactions, categories, onDeleteTransaction,
                           <SelectContent>
                             <SelectItem value="expense">Expense</SelectItem>
                             <SelectItem value="income">Income</SelectItem>
+                            <SelectItem value="savings">Savings</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -170,10 +172,12 @@ export const TransactionList = ({ transactions, categories, onDeleteTransaction,
                 >
                   <div className="flex items-center gap-3">
                     <div className={`p-2 rounded-full ${
-                      isIncome ? 'bg-success/10' : 'bg-destructive/10'
+                      isIncome ? 'bg-success/10' : isSavings ? 'bg-primary/10' : 'bg-destructive/10'
                     }`}>
                       {isIncome ? (
                         <ArrowDownLeft className="h-4 w-4 text-success" />
+                      ) : isSavings ? (
+                        <ArrowDownLeft className="h-4 w-4 text-primary" />
                       ) : (
                         <ArrowUpRight className="h-4 w-4 text-destructive" />
                       )}
@@ -202,9 +206,9 @@ export const TransactionList = ({ transactions, categories, onDeleteTransaction,
                   
                   <div className="flex items-center gap-3">
                     <span className={`font-bold ${
-                      isIncome ? 'text-success' : 'text-destructive'
+                      isIncome ? 'text-success' : isSavings ? 'text-primary' : 'text-destructive'
                     }`}>
-                      {isIncome ? '+' : '-'}₹{transaction.amount.toLocaleString()}
+                      {isIncome ? '+' : isSavings ? '=' : '-'}₹{transaction.amount.toLocaleString()}
                     </span>
                     
                     <Button

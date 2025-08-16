@@ -19,7 +19,7 @@ interface TransactionFormProps {
 export const TransactionForm = ({ categories, bankAccounts, onAddTransaction }: TransactionFormProps) => {
   const { toast } = useToast();
   const [formData, setFormData] = useState({
-    type: 'expense' as 'income' | 'expense',
+    type: 'expense' as 'income' | 'expense' | 'savings',
     amount: '',
     categoryId: '',
     accountId: '',
@@ -79,7 +79,7 @@ export const TransactionForm = ({ categories, bankAccounts, onAddTransaction }: 
             <Label htmlFor="transactionType">Type</Label>
             <Select
               value={formData.type}
-              onValueChange={(value: 'income' | 'expense') => 
+              onValueChange={(value: 'income' | 'expense' | 'savings') => 
                 setFormData({ ...formData, type: value })
               }
             >
@@ -89,6 +89,7 @@ export const TransactionForm = ({ categories, bankAccounts, onAddTransaction }: 
               <SelectContent>
                 <SelectItem value="expense">Expense</SelectItem>
                 <SelectItem value="income">Income</SelectItem>
+                <SelectItem value="savings">Savings</SelectItem>
               </SelectContent>
             </Select>
           </div>

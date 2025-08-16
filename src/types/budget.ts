@@ -9,7 +9,7 @@ export interface BudgetCategory {
 
 export interface Transaction {
   id: string;
-  type: 'income' | 'expense';
+  type: 'income' | 'expense' | 'savings';
   amount: number;
   categoryId: string;
   description: string;

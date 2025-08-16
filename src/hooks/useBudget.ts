@@ -569,10 +569,10 @@ export const useBudget = (selectedMonth?: string, selectedYear?: number) => {
       const transaction = budget.transactions.find(t => t.id === transactionId);
       if (!transaction) return;
 
-      // First check if transaction has account_id in the database
+      // First check if transaction has account_id and receiving_account_id in the database
       const { data: dbTransaction } = await supabase
         .from('transactions')
-        .select('account_id')
+        .select('account_id, receiving_account_id')
         .eq('id', transactionId)
         .single();
 
@@ -580,7 +580,16 @@ export const useBudget = (selectedMonth?: string, selectedYear?: number) => {
       if (dbTransaction?.account_id) {
         const account = bankAccounts.find(a => a.id === dbTransaction.account_id);
         if (account) {
-          const balanceRevert = transaction.type === 'income' ? -transaction.amount : transaction.amount;
+          let balanceRevert: number;
+          
+          if (transaction.type === 'savings' && dbTransaction.receiving_account_id) {
+            // For savings transfers, add back to source account
+            balanceRevert = transaction.amount;
+          } else {
+            // For regular transactions
+            balanceRevert = transaction.type === 'income' ? -transaction.amount : transaction.amount;
+          }
+          
           const newBalance = account.balance + balanceRevert;
           
           await supabase
@@ -597,6 +606,26 @@ export const useBudget = (selectedMonth?: string, selectedYear?: number) => {
         }
       }
 
+      // Revert receiving account balance for savings transfers
+      if (transaction.type === 'savings' && dbTransaction?.receiving_account_id) {
+        const receivingAccount = bankAccounts.find(a => a.id === dbTransaction.receiving_account_id);
+        if (receivingAccount) {
+          const newBalance = receivingAccount.balance - transaction.amount;
+          
+          await supabase
+            .from('bank_accounts')
+            .update({ balance: newBalance })
+            .eq('id', dbTransaction.receiving_account_id);
+
+          // Update local bank accounts state
+          setBankAccounts(prev => prev.map(a => 
+            a.id === dbTransaction.receiving_account_id 
+              ? { ...a, balance: newBalance }
+              : a
+          ));
+        }
+      }
+
       const { error } = await supabase
         .from('transactions')
         .delete()
@@ -607,9 +636,17 @@ export const useBudget = (selectedMonth?: string, selectedYear?: number) => {
       // Update category spent amount
       const category = budget.categories.find(cat => cat.id === transaction.categoryId);
       if (category) {
-        const newSpent = transaction.type === 'expense'
-          ? Math.max(0, category.spent - transaction.amount)
-          : category.spent + transaction.amount;
+        let newSpent: number;
+        
+        if (transaction.type === 'expense') {
+          newSpent = Math.max(0, category.spent - transaction.amount);
+        } else if (transaction.type === 'savings') {
+          // For savings, subtract from the spent amount (it was "contributed")
+          newSpent = Math.max(0, category.spent - transaction.amount);
+        } else {
+          // For income, add back to spent amount
+          newSpent = category.spent + transaction.amount;
+        }
 
         await supabase
           .from('budget_categories')

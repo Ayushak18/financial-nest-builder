@@ -126,7 +126,7 @@ export const BudgetTracker = () => {
         return (
           <div className="space-y-6">
             <TransactionForm categories={budget.categories} bankAccounts={bankAccounts} onAddTransaction={addTransaction} />
-            <TransactionList transactions={budget.transactions} categories={budget.categories} onDeleteTransaction={deleteTransaction} onUpdateTransaction={updateTransaction} />
+            <TransactionList transactions={budget.transactions} categories={budget.categories} bankAccounts={bankAccounts} onDeleteTransaction={deleteTransaction} onUpdateTransaction={updateTransaction} />
           </div>
         );
       case "insights":

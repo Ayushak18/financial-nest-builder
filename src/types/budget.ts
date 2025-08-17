@@ -14,6 +14,8 @@ export interface Transaction {
   categoryId: string;
   description: string;
   date: Date;
+  accountId?: string;
+  receivingAccountId?: string;
 }
 
 export interface MonthlyBudget {

@@ -4,17 +4,19 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Trash2, ArrowUpRight, ArrowDownLeft, Receipt, Edit, Check, X } from 'lucide-react';
+import { Trash2, ArrowUpRight, ArrowDownLeft, Receipt, Edit, Check, X, Banknote } from 'lucide-react';
 import { Transaction, BudgetCategory } from '@/types/budget';
+import { BankAccount } from '@/types/financial';
 
 interface TransactionListProps {
   transactions: Transaction[];
   categories: BudgetCategory[];
+  bankAccounts: BankAccount[];
   onDeleteTransaction: (transactionId: string) => void;
   onUpdateTransaction: (transactionId: string, updates: Partial<Transaction>) => void;
 }
 
-export const TransactionList = ({ transactions, categories, onDeleteTransaction, onUpdateTransaction }: TransactionListProps) => {
+export const TransactionList = ({ transactions, categories, bankAccounts, onDeleteTransaction, onUpdateTransaction }: TransactionListProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<Partial<Transaction>>({});
   const sortedTransactions = [...transactions].sort((a, b) => 
@@ -29,6 +31,12 @@ export const TransactionList = ({ transactions, categories, onDeleteTransaction,
   const getCategoryColor = (categoryId: string) => {
     const category = categories.find(c => c.id === categoryId);
     return category?.color || 'hsl(var(--muted))';
+  };
+
+  const getAccountName = (accountId?: string) => {
+    if (!accountId) return 'No Account';
+    const account = bankAccounts.find(a => a.id === accountId);
+    return account?.name || 'Unknown Account';
   };
 
   const handleEdit = (transaction: Transaction) => {
@@ -194,12 +202,25 @@ export const TransactionList = ({ transactions, categories, onDeleteTransaction,
                           {getCategoryName(transaction.categoryId)}
                         </Badge>
                       </div>
-                      <div className="text-sm text-muted-foreground">
-                        {new Date(transaction.date).toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric'
-                        })}
+                       <div className="text-sm text-muted-foreground flex items-center gap-2">
+                        <span>
+                          {new Date(transaction.date).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric'
+                          })}
+                        </span>
+                        <span>•</span>
+                        <div className="flex items-center gap-1">
+                          <Banknote className="h-3 w-3" />
+                          <span>{getAccountName(transaction.accountId)}</span>
+                          {transaction.type === 'savings' && transaction.receivingAccountId && (
+                            <>
+                              <span>→</span>
+                              <span>{getAccountName(transaction.receivingAccountId)}</span>
+                            </>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>

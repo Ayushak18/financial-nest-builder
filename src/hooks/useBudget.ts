@@ -143,7 +143,9 @@ export const useBudget = (selectedMonth?: string, selectedYear?: number) => {
         description: t.description,
         amount: Number(t.amount),
         type: t.type as 'expense' | 'income' | 'savings',
-        date: new Date(t.date)
+        date: new Date(t.date),
+        accountId: t.account_id,
+        receivingAccountId: t.receiving_account_id
       })) || []
     });
   };
@@ -396,7 +398,9 @@ export const useBudget = (selectedMonth?: string, selectedYear?: number) => {
             description: data.description,
             amount: Number(data.amount),
             type: data.type as 'expense' | 'income' | 'savings',
-            date: new Date(data.date)
+            date: new Date(data.date),
+            accountId: data.account_id,
+            receivingAccountId: data.receiving_account_id
           };
 
           return {

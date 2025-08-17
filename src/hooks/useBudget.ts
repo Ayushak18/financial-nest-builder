@@ -367,10 +367,11 @@ export const useBudget = (selectedMonth?: string, selectedYear?: number) => {
         }
       }
 
-      // Update category spent amount
+      // Update category spent amount and budget for income
       const category = budget.categories.find(cat => cat.id === transaction.categoryId);
       if (category) {
         let newSpent: number;
+        let newBudgetAmount = category.budgetAmount;
         
         if (transaction.type === 'expense') {
           newSpent = category.spent + transaction.amount;
@@ -378,18 +379,59 @@ export const useBudget = (selectedMonth?: string, selectedYear?: number) => {
           // For savings, add to the spent amount (it's actually "contributed")
           newSpent = category.spent + transaction.amount;
         } else {
-          // For income, reduce spent amount
+          // For income, reduce spent amount and increase budget
           newSpent = Math.max(0, category.spent - transaction.amount);
+          newBudgetAmount = category.budgetAmount + transaction.amount;
+        }
+
+        const updateData: any = { spent: newSpent };
+        if (transaction.type === 'income') {
+          updateData.budget_amount = newBudgetAmount;
         }
 
         await supabase
           .from('budget_categories')
-          .update({ spent: newSpent })
+          .update(updateData)
           .eq('id', transaction.categoryId);
+
+        // Update overall budget if it's income
+        if (transaction.type === 'income') {
+          const newTotalBudget = budget.totalBudget + transaction.amount;
+          let budgetTypeField: string;
+          
+          if (category.type === 'fixed') {
+            budgetTypeField = 'fixed_budget';
+          } else if (category.type === 'variable') {
+            budgetTypeField = 'variable_budget';
+          } else {
+            budgetTypeField = 'savings_budget';
+          }
+
+          let currentBudgetTypeAmount: number;
+          if (category.type === 'fixed') {
+            currentBudgetTypeAmount = budget.fixedBudget;
+          } else if (category.type === 'variable') {
+            currentBudgetTypeAmount = budget.variableBudget;
+          } else {
+            currentBudgetTypeAmount = budget.savingsBudget;
+          }
+
+          await supabase
+            .from('monthly_budgets')
+            .update({ 
+              total_budget: newTotalBudget,
+              [budgetTypeField]: currentBudgetTypeAmount + transaction.amount
+            })
+            .eq('id', budget.id);
+        }
 
         setBudget(prev => {
           const updatedCategories = prev.categories.map(cat => 
-            cat.id === transaction.categoryId ? { ...cat, spent: newSpent } : cat
+            cat.id === transaction.categoryId ? { 
+              ...cat, 
+              spent: newSpent,
+              budgetAmount: transaction.type === 'income' ? newBudgetAmount : cat.budgetAmount
+            } : cat
           );
 
           const newTransaction: Transaction = {
@@ -403,8 +445,21 @@ export const useBudget = (selectedMonth?: string, selectedYear?: number) => {
             receivingAccountId: data.receiving_account_id
           };
 
+          // Update overall budget amounts for income
+          let updatedBudget = { ...prev };
+          if (transaction.type === 'income') {
+            updatedBudget.totalBudget = prev.totalBudget + transaction.amount;
+            if (category.type === 'fixed') {
+              updatedBudget.fixedBudget = prev.fixedBudget + transaction.amount;
+            } else if (category.type === 'variable') {
+              updatedBudget.variableBudget = prev.variableBudget + transaction.amount;
+            } else {
+              updatedBudget.savingsBudget = prev.savingsBudget + transaction.amount;
+            }
+          }
+
           return {
-            ...prev,
+            ...updatedBudget,
             categories: updatedCategories,
             transactions: [newTransaction, ...prev.transactions]
           };

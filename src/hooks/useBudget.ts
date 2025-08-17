@@ -304,6 +304,7 @@ export const useBudget = (selectedMonth?: string, selectedYear?: number) => {
           category_id: transaction.categoryId,
           user_id: user.id,
           account_id: transaction.accountId || null,
+          receiving_account_id: transaction.receivingAccountId || null,
           description: transaction.description,
           amount: transaction.amount,
           type: transaction.type,

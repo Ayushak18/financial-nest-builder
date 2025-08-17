@@ -398,6 +398,7 @@ export type Database = {
           date: string
           description: string
           id: string
+          receiving_account_id: string | null
           type: string
           updated_at: string
           user_id: string
@@ -410,6 +411,7 @@ export type Database = {
           date?: string
           description: string
           id?: string
+          receiving_account_id?: string | null
           type: string
           updated_at?: string
           user_id: string
@@ -422,11 +424,20 @@ export type Database = {
           date?: string
           description?: string
           id?: string
+          receiving_account_id?: string | null
           type?: string
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "transactions_receiving_account_id_fkey"
+            columns: ["receiving_account_id"]
+            isOneToOne: false
+            referencedRelation: "bank_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

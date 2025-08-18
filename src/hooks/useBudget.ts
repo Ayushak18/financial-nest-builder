@@ -705,8 +705,8 @@ export const useBudget = (selectedMonth?: string, selectedYear?: number) => {
           // For savings, subtract from the spent amount (it was "contributed")
           newSpent = Math.max(0, category.spent - transaction.amount);
         } else {
-          // For income, add back to spent amount and decrease budget
-          newSpent = category.spent + transaction.amount;
+          // For income, subtract from spent amount and decrease budget
+          newSpent = Math.max(0, category.spent - transaction.amount);
           newBudgetAmount = Math.max(0, category.budgetAmount - transaction.amount);
         }
 

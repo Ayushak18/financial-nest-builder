@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { DollarSign, TrendingUp, TrendingDown, Target } from 'lucide-react';
 import { MonthlyBudget } from '@/types/budget';
 
@@ -8,14 +9,25 @@ interface BudgetOverviewProps {
   budget: MonthlyBudget;
   totalSpent: number;
   remainingBudget: number;
+  onReconcile?: () => void;
 }
 
-export const BudgetOverview = ({ budget, totalSpent, remainingBudget }: BudgetOverviewProps) => {
+export const BudgetOverview = ({ budget, totalSpent, remainingBudget, onReconcile }: BudgetOverviewProps) => {
   const progressPercentage = budget.totalBudget > 0 ? (totalSpent / budget.totalBudget) * 100 : 0;
   const isOverBudget = totalSpent > budget.totalBudget;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div className="space-y-4">
+      {onReconcile && (
+        <div className="flex justify-end">
+          <Button onClick={onReconcile} variant="outline" size="sm">
+            <Target className="w-4 h-4 mr-2" />
+            Reconcile Budget
+          </Button>
+        </div>
+      )}
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       <Card className="shadow-soft border-0">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -89,6 +101,7 @@ export const BudgetOverview = ({ budget, totalSpent, remainingBudget }: BudgetOv
           </p>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 };

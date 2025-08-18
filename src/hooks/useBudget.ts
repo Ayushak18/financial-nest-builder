@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { BudgetCategory, Transaction, MonthlyBudget } from '@/types/budget';
 import { BankAccount } from '@/types/financial';
 import { supabase } from '@/integrations/supabase/client';
@@ -705,8 +705,8 @@ export const useBudget = (selectedMonth?: string, selectedYear?: number) => {
           // For savings, subtract from the spent amount (it was "contributed")
           newSpent = Math.max(0, category.spent - transaction.amount);
         } else {
-          // For income, subtract from spent amount and decrease budget
-          newSpent = Math.max(0, category.spent - transaction.amount);
+          // For income, don't change spent amount, only decrease budget
+          newSpent = category.spent;
           newBudgetAmount = Math.max(0, category.budgetAmount - transaction.amount);
         }
 
@@ -812,11 +812,11 @@ export const useBudget = (selectedMonth?: string, selectedYear?: number) => {
     const fixedSpent = budget.categories
       .filter(cat => cat.type === 'fixed')
       .reduce((total, cat) => total + cat.spent, 0);
-    
+
     const variableSpent = budget.categories
       .filter(cat => cat.type === 'variable')
       .reduce((total, cat) => total + cat.spent, 0);
-    
+
     const savingsSpent = budget.categories
       .filter(cat => cat.type === 'savings')
       .reduce((total, cat) => total + cat.spent, 0);
@@ -827,6 +827,54 @@ export const useBudget = (selectedMonth?: string, selectedYear?: number) => {
       savings: savingsSpent
     };
   };
+
+  // Reconciliation helper to fix category spent amounts
+  const reconcileCategorySpent = useCallback(async () => {
+    if (!user || !budget.id) return;
+
+    try {
+      for (const category of budget.categories) {
+        // Calculate actual spent amount from transactions
+        const { data: transactions, error } = await supabase
+          .from('transactions')
+          .select('amount, type')
+          .eq('category_id', category.id)
+          .eq('user_id', user.id);
+
+        if (error) throw error;
+
+        let actualSpent = 0;
+        transactions?.forEach(transaction => {
+          if (transaction.type === 'expense' || transaction.type === 'savings') {
+            actualSpent += transaction.amount;
+          }
+          // Income doesn't contribute to spent amount
+        });
+
+        // Update if there's a discrepancy
+        if (Math.abs(actualSpent - category.spent) > 0.01) {
+          await supabase
+            .from('budget_categories')
+            .update({ spent: actualSpent })
+            .eq('id', category.id);
+        }
+      }
+
+      // Reload budget data to reflect changes
+      await loadBudgetData(user.id, budget.month, budget.year);
+      toast({
+        title: "Success",
+        description: "Budget reconciled successfully",
+      });
+    } catch (error) {
+      console.error('Error reconciling budget:', error);
+      toast({
+        title: "Error",
+        description: "Failed to reconcile budget",
+        variant: "destructive",
+      });
+    }
+  }, [user, budget, loadBudgetData]);
 
   return {
     budget,
@@ -843,6 +891,7 @@ export const useBudget = (selectedMonth?: string, selectedYear?: number) => {
     getTotalSpent,
     getRemainingBudget,
     getCategoryProgress,
-    getSpendingByType
+    getSpendingByType,
+    reconcileCategorySpent
   };
 };

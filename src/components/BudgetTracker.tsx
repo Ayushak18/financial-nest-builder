@@ -48,7 +48,8 @@ export const BudgetTracker = () => {
     getTotalSpent,
     getRemainingBudget,
     getCategoryProgress,
-    getSpendingByType
+    getSpendingByType,
+    reconcileCategorySpent
   } = useBudget(selectedMonth, selectedYear);
 
   const fetchAccounts = async () => {
@@ -117,7 +118,7 @@ export const BudgetTracker = () => {
       case "budget":
         return (
           <div className="space-y-8">
-            <BudgetOverview budget={budget} totalSpent={totalSpent} remainingBudget={remainingBudget} />
+            <BudgetOverview budget={budget} totalSpent={totalSpent} remainingBudget={remainingBudget} onReconcile={reconcileCategorySpent} />
             <BudgetSetup budget={budget} onUpdateBudget={updateBudget} getSpendingByType={getSpendingByType} />
             <CategoryManager categories={budget.categories} onAddCategory={addCategory} onUpdateCategory={updateCategory} onDeleteCategory={deleteCategory} getCategoryProgress={getCategoryProgress} />
           </div>
@@ -164,7 +165,7 @@ export const BudgetTracker = () => {
       default:
         return (
           <div className="space-y-8">
-            <BudgetOverview budget={budget} totalSpent={totalSpent} remainingBudget={remainingBudget} />
+            <BudgetOverview budget={budget} totalSpent={totalSpent} remainingBudget={remainingBudget} onReconcile={reconcileCategorySpent} />
             <BudgetSetup budget={budget} onUpdateBudget={updateBudget} getSpendingByType={getSpendingByType} />
             <CategoryManager categories={budget.categories} onAddCategory={addCategory} onUpdateCategory={updateCategory} onDeleteCategory={deleteCategory} getCategoryProgress={getCategoryProgress} />
           </div>

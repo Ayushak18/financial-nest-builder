@@ -693,10 +693,11 @@ export const useBudget = (selectedMonth?: string, selectedYear?: number) => {
 
       if (error) throw error;
 
-      // Update category spent amount
+      // Update category spent amount and budget for income deletion
       const category = budget.categories.find(cat => cat.id === transaction.categoryId);
       if (category) {
         let newSpent: number;
+        let newBudgetAmount = category.budgetAmount;
         
         if (transaction.type === 'expense') {
           newSpent = Math.max(0, category.spent - transaction.amount);
@@ -704,22 +705,80 @@ export const useBudget = (selectedMonth?: string, selectedYear?: number) => {
           // For savings, subtract from the spent amount (it was "contributed")
           newSpent = Math.max(0, category.spent - transaction.amount);
         } else {
-          // For income, add back to spent amount
+          // For income, add back to spent amount and decrease budget
           newSpent = category.spent + transaction.amount;
+          newBudgetAmount = Math.max(0, category.budgetAmount - transaction.amount);
+        }
+
+        const updateData: any = { spent: newSpent };
+        if (transaction.type === 'income') {
+          updateData.budget_amount = newBudgetAmount;
         }
 
         await supabase
           .from('budget_categories')
-          .update({ spent: newSpent })
+          .update(updateData)
           .eq('id', transaction.categoryId);
 
-        setBudget(prev => ({
-          ...prev,
-          categories: prev.categories.map(cat => 
-            cat.id === transaction.categoryId ? { ...cat, spent: newSpent } : cat
-          ),
-          transactions: prev.transactions.filter(t => t.id !== transactionId)
-        }));
+        // Update overall budget if it's income
+        if (transaction.type === 'income') {
+          const newTotalBudget = Math.max(0, budget.totalBudget - transaction.amount);
+          let budgetTypeField: string;
+          
+          if (category.type === 'fixed') {
+            budgetTypeField = 'fixed_budget';
+          } else if (category.type === 'variable') {
+            budgetTypeField = 'variable_budget';
+          } else {
+            budgetTypeField = 'savings_budget';
+          }
+
+          let currentBudgetTypeAmount: number;
+          if (category.type === 'fixed') {
+            currentBudgetTypeAmount = budget.fixedBudget;
+          } else if (category.type === 'variable') {
+            currentBudgetTypeAmount = budget.variableBudget;
+          } else {
+            currentBudgetTypeAmount = budget.savingsBudget;
+          }
+
+          await supabase
+            .from('monthly_budgets')
+            .update({ 
+              total_budget: newTotalBudget,
+              [budgetTypeField]: Math.max(0, currentBudgetTypeAmount - transaction.amount)
+            })
+            .eq('id', budget.id);
+        }
+
+        setBudget(prev => {
+          const updatedCategories = prev.categories.map(cat => 
+            cat.id === transaction.categoryId ? { 
+              ...cat, 
+              spent: newSpent,
+              budgetAmount: transaction.type === 'income' ? newBudgetAmount : cat.budgetAmount
+            } : cat
+          );
+
+          // Update overall budget amounts for income deletion
+          let updatedBudget = { ...prev };
+          if (transaction.type === 'income') {
+            updatedBudget.totalBudget = Math.max(0, prev.totalBudget - transaction.amount);
+            if (category.type === 'fixed') {
+              updatedBudget.fixedBudget = Math.max(0, prev.fixedBudget - transaction.amount);
+            } else if (category.type === 'variable') {
+              updatedBudget.variableBudget = Math.max(0, prev.variableBudget - transaction.amount);
+            } else {
+              updatedBudget.savingsBudget = Math.max(0, prev.savingsBudget - transaction.amount);
+            }
+          }
+
+          return {
+            ...updatedBudget,
+            categories: updatedCategories,
+            transactions: prev.transactions.filter(t => t.id !== transactionId)
+          };
+        });
       }
 
       toast({

@@ -11,6 +11,7 @@ import {
 } from './ui/dropdown-menu';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 interface UserProfileDropdownProps {
   user: {
@@ -24,6 +25,7 @@ interface UserProfileDropdownProps {
 
 export const UserProfileDropdown = ({ user }: UserProfileDropdownProps) => {
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleSignOut = async () => {
     try {
@@ -71,7 +73,10 @@ export const UserProfileDropdown = ({ user }: UserProfileDropdownProps) => {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="cursor-pointer">
+        <DropdownMenuItem 
+          className="cursor-pointer"
+          onClick={() => navigate('/settings')}
+        >
           <Settings className="mr-2 h-4 w-4" />
           <span>Settings</span>
         </DropdownMenuItem>

@@ -800,7 +800,23 @@ export const useBudget = (selectedMonth?: string, selectedYear?: number) => {
   };
 
   const getRemainingBudget = () => {
-    return budget.totalBudget - getTotalSpent();
+    const totalSpent = getTotalSpent();
+    const remaining = budget.totalBudget - totalSpent;
+    
+    // Debug logging for calculation verification
+    console.log('Budget Calculation Debug:', {
+      totalBudget: budget.totalBudget,
+      totalSpent: totalSpent,
+      remainingBudget: remaining,
+      categories: budget.categories.map(cat => ({
+        name: cat.name,
+        type: cat.type,
+        budgetAmount: cat.budgetAmount,
+        spent: cat.spent
+      }))
+    });
+    
+    return remaining;
   };
 
   const getCategoryProgress = (category: BudgetCategory) => {

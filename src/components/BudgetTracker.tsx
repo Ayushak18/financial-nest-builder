@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useBudget } from '@/hooks/useBudget';
+import { useFinancialData } from '@/hooks/useFinancialData';
 import { supabase } from '@/integrations/supabase/client';
 import { BudgetOverview } from './BudgetOverview';
 import { BudgetSetup } from './BudgetSetup';
@@ -49,8 +49,9 @@ export const BudgetTracker = () => {
     getRemainingBudget,
     getCategoryProgress,
     getSpendingByType,
-    reconcileCategorySpent
-  } = useBudget(selectedMonth, selectedYear);
+    reconcileCategorySpent,
+    deleteMonthData
+  } = useFinancialData(selectedMonth, selectedYear);
 
   const fetchAccounts = async () => {
     if (!user) return;
@@ -195,6 +196,19 @@ export const BudgetTracker = () => {
                 selectedYear={selectedYear}
                 onMonthChange={handleMonthChange}
               />
+              {selectedMonth === 'August' && selectedYear === 2024 && (
+                <Button 
+                  variant="destructive" 
+                  size="sm"
+                  onClick={() => {
+                    if (confirm('Are you sure you want to delete ALL August 2024 data? This cannot be undone.')) {
+                      deleteMonthData('August', 2024);
+                    }
+                  }}
+                >
+                  Delete August Data
+                </Button>
+              )}
               <UserProfileDropdown user={user} />
             </div>
           </header>

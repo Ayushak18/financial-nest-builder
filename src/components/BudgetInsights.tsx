@@ -2,6 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from './ui/chart';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, ResponsiveContainer, LineChart, Line } from 'recharts';
 import { BudgetCategory, Transaction } from '@/types/budget';
+import { FinancialCalculations } from '@/services/financialCalculations';
 
 interface BudgetInsightsProps {
   categories: BudgetCategory[];
@@ -10,7 +11,6 @@ interface BudgetInsightsProps {
   fixedBudget: number;
   variableBudget: number;
   savingsBudget: number;
-  getSpendingByType: () => { fixed: number; variable: number; savings: number };
 }
 
 export const BudgetInsights = ({
@@ -19,10 +19,9 @@ export const BudgetInsights = ({
   totalBudget,
   fixedBudget,
   variableBudget,
-  savingsBudget,
-  getSpendingByType
+  savingsBudget
 }: BudgetInsightsProps) => {
-  const spendingByType = getSpendingByType();
+  const spendingByType = FinancialCalculations.getSpendingByType(categories);
   
   // Prepare data for charts
   const categorySpendingData = categories.map(category => ({
@@ -176,7 +175,7 @@ export const BudgetInsights = ({
         <Card>
           <CardContent className="p-4">
             <div className="text-2xl font-bold text-primary">
-              ₹{(totalBudget - (spendingByType.fixed + spendingByType.variable + spendingByType.savings)).toFixed(2)}
+              ₹{FinancialCalculations.getRemainingBudget(totalBudget, categories).toFixed(2)}
             </div>
             <p className="text-sm text-muted-foreground">Remaining Budget</p>
           </CardContent>

@@ -3,6 +3,7 @@ import { BudgetCategory, Transaction, MonthlyBudget } from '@/types/budget';
 import { BankAccount } from '@/types/financial';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { FinancialCalculations } from '@/services/financialCalculations';
 
 export const useBudget = (selectedMonth?: string, selectedYear?: number) => {
   const { toast } = useToast();
@@ -317,20 +318,11 @@ export const useBudget = (selectedMonth?: string, selectedYear?: number) => {
 
       if (error) throw error;
 
-      // Update account balance if account is specified
+      // Update account balance using centralized calculation
       if (transaction.accountId) {
         const account = bankAccounts.find(a => a.id === transaction.accountId);
         if (account) {
-          let balanceChange: number;
-          
-          if (transaction.type === 'savings' && transaction.receivingAccountId) {
-            // For savings transfers, subtract from source account
-            balanceChange = -transaction.amount;
-          } else {
-            // For regular transactions
-            balanceChange = transaction.type === 'income' ? transaction.amount : -transaction.amount;
-          }
-          
+          const balanceChange = FinancialCalculations.calculateAccountBalanceChange(transaction, true);
           const newBalance = account.balance + balanceChange;
           
           await supabase
@@ -347,11 +339,12 @@ export const useBudget = (selectedMonth?: string, selectedYear?: number) => {
         }
       }
 
-      // Handle receiving account for savings transfers
+      // Handle receiving account for savings transfers using centralized calculation
       if (transaction.type === 'savings' && transaction.receivingAccountId) {
         const receivingAccount = bankAccounts.find(a => a.id === transaction.receivingAccountId);
         if (receivingAccount) {
-          const newBalance = receivingAccount.balance + transaction.amount;
+          const balanceChange = FinancialCalculations.calculateAccountBalanceChange(transaction, false);
+          const newBalance = receivingAccount.balance + balanceChange;
           
           await supabase
             .from('bank_accounts')
@@ -367,25 +360,17 @@ export const useBudget = (selectedMonth?: string, selectedYear?: number) => {
         }
       }
 
-      // Update category spent amount and budget for income
+      // Update category spent amount and budget using centralized calculations
       const category = budget.categories.find(cat => cat.id === transaction.categoryId);
       if (category) {
-        let newSpent: number;
-        let newBudgetAmount = category.budgetAmount;
+        const spentChange = FinancialCalculations.calculateCategorySpentChange(transaction, true);
+        const budgetChange = FinancialCalculations.calculateBudgetChange(transaction, true);
         
-        if (transaction.type === 'expense') {
-          newSpent = category.spent + transaction.amount;
-        } else if (transaction.type === 'savings') {
-          // For savings, add to the spent amount (it's actually "contributed")
-          newSpent = category.spent + transaction.amount;
-        } else {
-          // For income, don't change spent amount - only increase budget
-          newSpent = category.spent;
-          newBudgetAmount = category.budgetAmount + transaction.amount;
-        }
+        const newSpent = category.spent + spentChange;
+        const newBudgetAmount = category.budgetAmount + budgetChange;
 
         const updateData: any = { spent: newSpent };
-        if (transaction.type === 'income') {
+        if (budgetChange !== 0) {
           updateData.budget_amount = newBudgetAmount;
         }
 
@@ -395,7 +380,7 @@ export const useBudget = (selectedMonth?: string, selectedYear?: number) => {
           .eq('id', transaction.categoryId);
 
         // Update overall budget if it's income
-        if (transaction.type === 'income') {
+        if (budgetChange !== 0) {
           const newTotalBudget = budget.totalBudget + transaction.amount;
           let budgetTypeField: string;
           
@@ -447,20 +432,26 @@ export const useBudget = (selectedMonth?: string, selectedYear?: number) => {
 
           // Update overall budget amounts for income
           let updatedBudget = { ...prev };
-          if (transaction.type === 'income') {
-            updatedBudget.totalBudget = prev.totalBudget + transaction.amount;
+          if (budgetChange !== 0) {
+            updatedBudget.totalBudget = prev.totalBudget + budgetChange;
             if (category.type === 'fixed') {
-              updatedBudget.fixedBudget = prev.fixedBudget + transaction.amount;
+              updatedBudget.fixedBudget = prev.fixedBudget + budgetChange;
             } else if (category.type === 'variable') {
-              updatedBudget.variableBudget = prev.variableBudget + transaction.amount;
+              updatedBudget.variableBudget = prev.variableBudget + budgetChange;
             } else {
-              updatedBudget.savingsBudget = prev.savingsBudget + transaction.amount;
+              updatedBudget.savingsBudget = prev.savingsBudget + budgetChange;
             }
           }
 
           return {
             ...updatedBudget,
-            categories: updatedCategories,
+            categories: updatedCategories.map(cat => 
+              cat.id === transaction.categoryId ? { 
+                ...cat, 
+                spent: newSpent,
+                budgetAmount: newBudgetAmount
+              } : cat
+            ),
             transactions: [newTransaction, ...prev.transactions]
           };
         });
@@ -796,17 +787,16 @@ export const useBudget = (selectedMonth?: string, selectedYear?: number) => {
   };
 
   const getTotalSpent = () => {
-    return budget.categories.reduce((total, cat) => total + cat.spent, 0);
+    return FinancialCalculations.getTotalSpent(budget.categories);
   };
 
   const getRemainingBudget = () => {
-    const totalSpent = getTotalSpent();
-    const remaining = budget.totalBudget - totalSpent;
+    const remaining = FinancialCalculations.getRemainingBudget(budget.totalBudget, budget.categories);
     
     // Debug logging for calculation verification
     console.log('Budget Calculation Debug:', {
       totalBudget: budget.totalBudget,
-      totalSpent: totalSpent,
+      totalSpent: FinancialCalculations.getTotalSpent(budget.categories),
       remainingBudget: remaining,
       categories: budget.categories.map(cat => ({
         name: cat.name,
@@ -820,64 +810,38 @@ export const useBudget = (selectedMonth?: string, selectedYear?: number) => {
   };
 
   const getCategoryProgress = (category: BudgetCategory) => {
-    if (category.budgetAmount === 0) return 0;
-    return Math.min((category.spent / category.budgetAmount) * 100, 100);
+    return FinancialCalculations.getCategoryProgress(category);
   };
 
   const getSpendingByType = () => {
-    const fixedSpent = budget.categories
-      .filter(cat => cat.type === 'fixed')
-      .reduce((total, cat) => total + cat.spent, 0);
-
-    const variableSpent = budget.categories
-      .filter(cat => cat.type === 'variable')
-      .reduce((total, cat) => total + cat.spent, 0);
-
-    const savingsSpent = budget.categories
-      .filter(cat => cat.type === 'savings')
-      .reduce((total, cat) => total + cat.spent, 0);
-
-    return {
-      fixed: fixedSpent,
-      variable: variableSpent,
-      savings: savingsSpent
-    };
+    return FinancialCalculations.getSpendingByType(budget.categories);
   };
 
-  // Reconciliation helper to fix category spent amounts
+  // Reconciliation using centralized calculations
   const reconcileCategorySpent = useCallback(async () => {
     if (!user || !budget.id) return;
 
     try {
-      for (const category of budget.categories) {
-        // Calculate actual spent amount from transactions
-        const { data: transactions, error } = await supabase
-          .from('transactions')
-          .select('amount, type')
-          .eq('category_id', category.id)
-          .eq('user_id', user.id);
-
-        if (error) throw error;
-
-        let actualSpent = 0;
-        transactions?.forEach(transaction => {
-          if (transaction.type === 'expense' || transaction.type === 'savings') {
-            actualSpent += transaction.amount;
+      const updatedCategories = await Promise.all(
+        budget.categories.map(async (category) => {
+          const actualSpent = await FinancialCalculations.reconcileCategory(category.id, user.id);
+          
+          if (Math.abs(actualSpent - category.spent) > 0.01) {
+            await supabase
+              .from('budget_categories')
+              .update({ spent: actualSpent })
+              .eq('id', category.id);
           }
-          // Income doesn't contribute to spent amount
-        });
 
-        // Update if there's a discrepancy
-        if (Math.abs(actualSpent - category.spent) > 0.01) {
-          await supabase
-            .from('budget_categories')
-            .update({ spent: actualSpent })
-            .eq('id', category.id);
-        }
-      }
+          return { ...category, spent: actualSpent };
+        })
+      );
 
-      // Reload budget data to reflect changes
-      await loadBudgetData(user.id, budget.month, budget.year);
+      setBudget(prev => ({
+        ...prev,
+        categories: updatedCategories
+      }));
+
       toast({
         title: "Success",
         description: "Budget reconciled successfully",
@@ -890,7 +854,7 @@ export const useBudget = (selectedMonth?: string, selectedYear?: number) => {
         variant: "destructive",
       });
     }
-  }, [user, budget, loadBudgetData]);
+  }, [user, budget.categories, budget.id]);
 
   return {
     budget,

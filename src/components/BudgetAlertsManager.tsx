@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { AlertTriangle, TrendingUp, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { FinancialCalculations } from '@/services/financialCalculations';
 
 interface BudgetAlert {
   id: string;
@@ -45,18 +46,22 @@ export function BudgetAlertsManager() {
       if (categories) {
         const budgetAlerts: BudgetAlert[] = categories
           .filter(category => {
-            const percentage = (category.spent / category.budget_amount) * 100;
+            const budgetAmount = Number(category.budget_amount);
+            const spent = Number(category.spent);
+            const percentage = budgetAmount === 0 ? 0 : Math.min((spent / budgetAmount) * 100, 100);
             return percentage >= 80; // Alert when 80% or more of budget is spent
           })
           .map(category => {
-            const percentage = (category.spent / category.budget_amount) * 100;
+            const budgetAmount = Number(category.budget_amount);
+            const spent = Number(category.spent);
+            const percentage = budgetAmount === 0 ? 0 : Math.min((spent / budgetAmount) * 100, 100);
             return {
               id: category.id,
               categoryName: category.name,
-              budgetAmount: category.budget_amount,
-              spent: category.spent,
+              budgetAmount,
+              spent,
               percentage,
-              severity: percentage >= 100 ? 'danger' : 'warning'
+              severity: percentage >= 100 ? 'danger' as const : 'warning' as const
             };
           });
 

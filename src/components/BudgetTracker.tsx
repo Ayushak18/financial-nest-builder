@@ -131,7 +131,7 @@ export const BudgetTracker = () => {
           </div>
         );
       case "insights":
-        return <BudgetInsights categories={budget.categories} transactions={budget.transactions} totalBudget={budget.totalBudget} fixedBudget={budget.fixedBudget} variableBudget={budget.variableBudget} savingsBudget={budget.savingsBudget} getSpendingByType={getSpendingByType} />;
+        return <BudgetInsights categories={budget.categories} transactions={budget.transactions} totalBudget={budget.totalBudget} fixedBudget={budget.fixedBudget} variableBudget={budget.variableBudget} savingsBudget={budget.savingsBudget} />;
       case "accounts":
         return (
           <div className="space-y-6">

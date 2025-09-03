@@ -8,6 +8,7 @@ import { Label } from './ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Plus, Trash2, Building2, CreditCard, Wallet, TrendingUp, DollarSign } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { FinancialCalculations } from '@/services/financialCalculations';
 
 interface BankAccountManagerProps {
   user: any;
@@ -124,7 +125,7 @@ export const BankAccountManager = ({ user }: BankAccountManagerProps) => {
     }
   };
 
-  const totalBalance = accounts.reduce((sum, account) => sum + account.balance, 0);
+  const totalBalance = FinancialCalculations.getTotalAccountBalance(accounts);
 
   return (
     <Card>

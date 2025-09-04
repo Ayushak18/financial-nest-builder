@@ -257,6 +257,104 @@ export type Database = {
         }
         Relationships: []
       }
+      import_items: {
+        Row: {
+          account_name: string | null
+          amount: number | null
+          category_name: string | null
+          created_at: string
+          date: string | null
+          description: string | null
+          id: string
+          parsed_data: Json | null
+          raw_data: Json
+          session_id: string
+          status: string
+          transaction_type: string | null
+          validation_errors: string[] | null
+        }
+        Insert: {
+          account_name?: string | null
+          amount?: number | null
+          category_name?: string | null
+          created_at?: string
+          date?: string | null
+          description?: string | null
+          id?: string
+          parsed_data?: Json | null
+          raw_data: Json
+          session_id: string
+          status?: string
+          transaction_type?: string | null
+          validation_errors?: string[] | null
+        }
+        Update: {
+          account_name?: string | null
+          amount?: number | null
+          category_name?: string | null
+          created_at?: string
+          date?: string | null
+          description?: string | null
+          id?: string
+          parsed_data?: Json | null
+          raw_data?: Json
+          session_id?: string
+          status?: string
+          transaction_type?: string | null
+          validation_errors?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "import_items_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "import_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      import_sessions: {
+        Row: {
+          column_mapping: Json | null
+          created_at: string
+          file_name: string
+          file_path: string
+          file_type: string
+          id: string
+          processed_items: number | null
+          status: string
+          total_items: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          column_mapping?: Json | null
+          created_at?: string
+          file_name: string
+          file_path: string
+          file_type: string
+          id?: string
+          processed_items?: number | null
+          status?: string
+          total_items?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          column_mapping?: Json | null
+          created_at?: string
+          file_name?: string
+          file_path?: string
+          file_type?: string
+          id?: string
+          processed_items?: number | null
+          status?: string
+          total_items?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       investments: {
         Row: {
           account_id: string

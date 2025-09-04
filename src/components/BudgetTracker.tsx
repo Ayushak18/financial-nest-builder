@@ -21,6 +21,7 @@ import { BudgetAlertsManager } from './BudgetAlertsManager';
 import { BillReminders } from './BillReminders';
 import { TrendAnalysis } from './TrendAnalysis';
 import { FinancialForecasting } from './FinancialForecasting';
+import { ImportWizard } from './ImportWizard';
 import { AppSidebar, type SidebarSection } from './AppSidebar';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
@@ -163,6 +164,8 @@ export const BudgetTracker = () => {
         return <FinancialForecasting />;
       case "export":
         return <ExportData budget={budget} categories={budget.categories} transactions={budget.transactions} getSpendingByType={getSpendingByType} />;
+      case "import":
+        return <ImportWizard />;
       default:
         return (
           <div className="space-y-8">

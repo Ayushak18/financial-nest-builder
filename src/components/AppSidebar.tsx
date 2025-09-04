@@ -17,7 +17,8 @@ import {
   Calendar,
   LineChart,
   Calculator,
-  List
+  List,
+  Upload
 } from "lucide-react";
 
 import {
@@ -46,6 +47,7 @@ export type SidebarSection =
   | "bills" 
   | "trends" 
   | "forecast" 
+  | "import"
   | "export";
 
 interface AppSidebarProps {
@@ -78,6 +80,7 @@ const analyticsItems = [
 ];
 
 const utilityItems = [
+  { title: "Import Data", section: "import" as const, icon: Upload },
   { title: "Export Data", section: "export" as const, icon: Download },
 ];
 

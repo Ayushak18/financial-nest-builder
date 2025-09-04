@@ -1,1 +1,8 @@
 project_id = "lglsznnzluzurtkzxiek"
+
+[auth]
+enabled = true
+external_url = "https://lglsznnzluzurtkzxiek.supabase.co"
+
+[functions.parse-import-file]
+verify_jwt = true

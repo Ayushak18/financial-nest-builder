@@ -907,11 +907,23 @@ export const useFinancialData = (selectedMonth?: string, selectedYear?: number) 
 
   // Calculation helpers using centralized service
   const calculations = {
-    getTotalSpent: () => FinancialCalculations.getTotalSpent(budget.categories),
-    getRemainingBudget: () => FinancialCalculations.getRemainingBudget(budget.totalBudget, budget.categories),
+    getTotalSpent: () => {
+      const spent = FinancialCalculations.getTotalSpent(budget.categories);
+      console.log('getTotalSpent:', spent, 'from categories:', budget.categories.map(c => ({ name: c.name, spent: c.spent })));
+      return spent;
+    },
+    getRemainingBudget: () => {
+      const remaining = FinancialCalculations.getRemainingBudget(budget.totalBudget, budget.categories);
+      console.log('getRemainingBudget:', remaining, 'totalBudget:', budget.totalBudget, 'totalSpent:', FinancialCalculations.getTotalSpent(budget.categories));
+      return remaining;
+    },
     getSpendingByType: () => FinancialCalculations.getSpendingByType(budget.categories),
     getCategoryProgress: (category: BudgetCategory) => FinancialCalculations.getCategoryProgress(category),
-    getTotalAccountBalance: () => FinancialCalculations.getTotalAccountBalance(bankAccounts),
+    getTotalAccountBalance: () => {
+      const balance = FinancialCalculations.getTotalAccountBalance(bankAccounts);
+      console.log('getTotalAccountBalance:', balance, 'from accounts:', bankAccounts.map(a => ({ name: a.name, balance: a.balance })));
+      return balance;
+    },
     validateBudgetConsistency: () => FinancialCalculations.validateBudgetConsistency(budget)
   };
 

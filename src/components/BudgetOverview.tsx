@@ -15,6 +15,14 @@ interface BudgetOverviewProps {
 export const BudgetOverview = ({ budget, totalSpent, remainingBudget, onReconcile }: BudgetOverviewProps) => {
   const progressPercentage = budget.totalBudget > 0 ? (totalSpent / budget.totalBudget) * 100 : 0;
   const isOverBudget = totalSpent > budget.totalBudget;
+  
+  // Debug logging
+  console.log('BudgetOverview Debug:', {
+    totalBudget: budget.totalBudget,
+    totalSpent,
+    remainingBudget,
+    calculatedRemaining: budget.totalBudget - totalSpent
+  });
 
   return (
     <div className="space-y-4">

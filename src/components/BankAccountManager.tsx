@@ -126,6 +126,13 @@ export const BankAccountManager = ({ user }: BankAccountManagerProps) => {
   };
 
   const totalBalance = FinancialCalculations.getTotalAccountBalance(accounts);
+  
+  // Debug logging
+  console.log('BankAccountManager Debug:', {
+    totalBalance,
+    accountCount: accounts.length,
+    accounts: accounts.map(a => ({ name: a.name, balance: a.balance }))
+  });
 
   return (
     <Card>

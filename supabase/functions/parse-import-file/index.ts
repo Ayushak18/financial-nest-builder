@@ -179,124 +179,120 @@ async function parseExcel(fileData: Blob): Promise<ParsedTransaction[]> {
 }
 
 async function parsePDF(fileData: Blob): Promise<ParsedTransaction[]> {
-  const text = await fileData.text();
-  console.log('PDF text content (first 500 chars):', text.substring(0, 500));
-  
-  const transactions: ParsedTransaction[] = [];
-  const lines = text.split('\n').filter(line => line.trim());
-  
-  // Enhanced patterns for bank statement formats
-  const patterns = [
-    // Pattern for format: "1 Aug 2025 1 Aug 2025 DESCRIPTION REFERENCE 2,188.36 77,627.25"
-    /(\d{1,2}\s+\w{3}\s+\d{4})\s+(\d{1,2}\s+\w{3}\s+\d{4})\s+(.+?)\s+(\w+\s+TO\s+\d+)\s+([\d,]+\.?\d*)\s+([\d,]+\.?\d*)/g,
-    // Pattern for tabular format with debit/credit columns
-    /(\d{1,2}\/\d{1,2}\/\d{4}|\d{1,2}\s+\w{3}\s+\d{4})\s+.+?\s+([\d,]+\.?\d*)\s*$/gm,
-    // General date-description-amount patterns
-    /(\d{1,2}\/\d{1,2}\/\d{4})\s+(.+?)\s+([-+]?[\d,]+\.?\d*)/g,
-    /(\d{1,2}-\d{1,2}-\d{4})\s+(.+?)\s+([-+]?[\d,]+\.?\d*)/g,
-  ];
-  
-  // Try to parse as tabular data first
-  let headerFound = false;
-  let dateColumnIndex = -1;
-  let descriptionColumnIndex = -1;
-  let debitColumnIndex = -1;
-  let creditColumnIndex = -1;
-  
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim();
+  try {
+    console.log('PDF file size:', fileData.size, 'bytes');
+    console.log('PDF file type:', fileData.type);
     
-    // Look for header row
-    if (!headerFound && (line.includes('Date') || line.includes('Description') || line.includes('Debit') || line.includes('Credit'))) {
-      headerFound = true;
-      const columns = line.split(/\s{2,}|\t/); // Split by multiple spaces or tabs
+    // Convert PDF blob to ArrayBuffer for proper handling
+    const arrayBuffer = await fileData.arrayBuffer();
+    const uint8Array = new Uint8Array(arrayBuffer);
+    
+    // Check if it's actually a PDF file
+    const pdfHeader = String.fromCharCode(...uint8Array.slice(0, 4));
+    if (pdfHeader !== '%PDF') {
+      console.log('Not a valid PDF file, header:', pdfHeader);
+      throw new Error('Invalid PDF file format');
+    }
+    
+    console.log('Valid PDF detected');
+    
+    // Convert to text for basic extraction (this is a simplified approach)
+    let text = '';
+    try {
+      // Try to extract text using a simple approach
+      const decoder = new TextDecoder('utf-8', { fatal: false });
+      text = decoder.decode(uint8Array);
+      console.log('PDF text extraction length:', text.length);
+      console.log('PDF text sample (first 500 chars):', text.substring(0, 500));
+    } catch (decodeError) {
+      console.error('Failed to decode PDF as text:', decodeError);
+      throw new Error('Unable to extract text from PDF');
+    }
+    
+    const transactions: ParsedTransaction[] = [];
+    
+    // Enhanced regex patterns for the bank statement format shown
+    const patterns = [
+      // Pattern for: "1 Aug 2025 1 Aug 2025 TO TRANSFER-UPI/DR/... TRANSFER TO 489769516... 2,188.36 77,627.25"
+      /(\d{1,2}\s+\w{3}\s+\d{4})\s+\d{1,2}\s+\w{3}\s+\d{4}\s+(.+?)\s+TRANSFER\s+TO\s+\d+\s+([\d,]+\.?\d*)\s+([\d,]+\.?\d*)/g,
       
-      columns.forEach((col, index) => {
-        const colLower = col.toLowerCase();
-        if (colLower.includes('date') && !colLower.includes('value')) {
-          dateColumnIndex = index;
-        } else if (colLower.includes('description')) {
-          descriptionColumnIndex = index;
-        } else if (colLower.includes('debit')) {
-          debitColumnIndex = index;
-        } else if (colLower.includes('credit')) {
-          creditColumnIndex = index;
-        }
-      });
-      continue;
-    }
+      // More flexible pattern for date-description-amount
+      /(\d{1,2}\s+\w{3}\s+\d{4})\s+(.{20,}?)\s+([\d,]+\.?\d*)\s*$/gm,
+      
+      // Pattern for traditional CSV-like format
+      /(\d{1,2}\/\d{1,2}\/\d{4})\s*,\s*(.+?)\s*,\s*([\d,]+\.?\d*)/g,
+      
+      // General numeric pattern with dates
+      /(\d{1,2}[-\/]\d{1,2}[-\/]\d{4})\s+(.+?)\s+([\d,]+\.?\d*)/g,
+    ];
     
-    // Parse data rows if header was found
-    if (headerFound && dateColumnIndex >= 0) {
-      const columns = line.split(/\s{2,}|\t/);
-      if (columns.length > Math.max(dateColumnIndex, descriptionColumnIndex, debitColumnIndex, creditColumnIndex)) {
-        const dateStr = columns[dateColumnIndex]?.trim();
-        const description = columns[descriptionColumnIndex]?.trim() || 'Transaction';
-        const debitStr = columns[debitColumnIndex]?.trim() || '';
-        const creditStr = columns[creditColumnIndex]?.trim() || '';
-        
-        // Process debit amount
-        if (debitStr && debitStr !== '' && !isNaN(parseFloat(debitStr.replace(/[^\d.-]/g, '')))) {
-          const amount = parseFloat(debitStr.replace(/[^\d.-]/g, ''));
-          if (amount > 0) {
-            transactions.push({
-              date: formatDate(dateStr),
-              description: description,
-              amount: amount,
-              type: 'expense'
-            });
-          }
-        }
-        
-        // Process credit amount
-        if (creditStr && creditStr !== '' && !isNaN(parseFloat(creditStr.replace(/[^\d.-]/g, '')))) {
-          const amount = parseFloat(creditStr.replace(/[^\d.-]/g, ''));
-          if (amount > 0) {
-            transactions.push({
-              date: formatDate(dateStr),
-              description: description,
-              amount: amount,
-              type: 'income'
-            });
-          }
-        }
-      }
-    }
-  }
-  
-  // If tabular parsing didn't work, fall back to regex patterns
-  if (transactions.length === 0) {
+    // Try each pattern
     for (const pattern of patterns) {
       let match;
       while ((match = pattern.exec(text)) !== null) {
-        let dateStr, description, amountStr;
+        const [fullMatch, dateStr, description, amountStr] = match;
+        console.log('Pattern match:', { dateStr, description: description.substring(0, 50), amountStr });
         
-        if (match.length === 7) {
-          // Format: date, value_date, description, reference, debit, balance
-          [, dateStr, , description, , amountStr] = match;
-        } else if (match.length === 4) {
-          // Format: date, description, amount
-          [, dateStr, description, amountStr] = match;
-        } else {
-          continue;
-        }
+        const cleanAmount = amountStr.replace(/[^\d.-]/g, '');
+        const amount = parseFloat(cleanAmount);
         
-        const amount = parseFloat(amountStr.replace(/[^\d.-]/g, ''));
-        
-        if (!isNaN(amount) && Math.abs(amount) > 0) {
+        if (!isNaN(amount) && amount > 0) {
+          // Clean up description
+          const cleanDescription = description
+            .replace(/TO TRANSFER-UPI\/DR\/\d+\/[^\/]+\//, '')
+            .replace(/TRANSFER TO \d+/, '')
+            .trim() || 'Bank Transfer';
+          
           transactions.push({
             date: formatDate(dateStr),
-            description: description.trim(),
-            amount: Math.abs(amount),
-            type: amount < 0 ? 'expense' : 'income'
+            description: cleanDescription.substring(0, 100), // Limit description length
+            amount: amount,
+            type: 'expense' // Assume expenses for debit transactions
           });
         }
       }
+      
+      if (transactions.length > 0) {
+        console.log(`Found ${transactions.length} transactions with pattern`);
+        break; // Stop after first successful pattern
+      }
     }
+    
+    // If no patterns worked, try a simpler line-by-line approach
+    if (transactions.length === 0) {
+      console.log('Trying line-by-line parsing...');
+      const lines = text.split(/[\n\r]+/).filter(line => line.trim().length > 0);
+      
+      for (const line of lines) {
+        // Look for lines with dates and amounts
+        const dateMatch = line.match(/(\d{1,2}\s+\w{3}\s+\d{4})/);
+        const amountMatch = line.match(/([\d,]+\.?\d*)/g);
+        
+        if (dateMatch && amountMatch && amountMatch.length > 0) {
+          // Take the first reasonable amount found
+          for (const amountStr of amountMatch) {
+            const amount = parseFloat(amountStr.replace(/[^\d.-]/g, ''));
+            if (amount > 0 && amount < 1000000) { // Reasonable amount range
+              transactions.push({
+                date: formatDate(dateMatch[1]),
+                description: 'Transaction from PDF',
+                amount: amount,
+                type: 'expense'
+              });
+              break;
+            }
+          }
+        }
+      }
+    }
+    
+    console.log(`Final result: Parsed ${transactions.length} transactions from PDF`);
+    return transactions;
+    
+  } catch (error) {
+    console.error('PDF parsing error:', error);
+    throw new Error(`Failed to parse PDF: ${error.message}`);
   }
-  
-  console.log(`Parsed ${transactions.length} transactions from PDF`);
-  return transactions;
 }
 
 function parseTransactionRow(row: Record<string, string>): ParsedTransaction | null {

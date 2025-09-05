@@ -179,34 +179,123 @@ async function parseExcel(fileData: Blob): Promise<ParsedTransaction[]> {
 }
 
 async function parsePDF(fileData: Blob): Promise<ParsedTransaction[]> {
-  // Basic PDF text extraction - in production, use proper PDF parsing
   const text = await fileData.text();
-  
-  // Simple regex patterns for common bank statement formats
-  const patterns = [
-    /(\d{2}\/\d{2}\/\d{4})\s+(.+?)\s+([-+]?\d+\.?\d*)/g,
-    /(\d{2}-\d{2}-\d{4})\s+(.+?)\s+([-+]?\d+\.?\d*)/g,
-  ];
+  console.log('PDF text content (first 500 chars):', text.substring(0, 500));
   
   const transactions: ParsedTransaction[] = [];
+  const lines = text.split('\n').filter(line => line.trim());
   
-  for (const pattern of patterns) {
-    let match;
-    while ((match = pattern.exec(text)) !== null) {
-      const [, dateStr, description, amountStr] = match;
-      const amount = parseFloat(amountStr.replace(/[^\d.-]/g, ''));
+  // Enhanced patterns for bank statement formats
+  const patterns = [
+    // Pattern for format: "1 Aug 2025 1 Aug 2025 DESCRIPTION REFERENCE 2,188.36 77,627.25"
+    /(\d{1,2}\s+\w{3}\s+\d{4})\s+(\d{1,2}\s+\w{3}\s+\d{4})\s+(.+?)\s+(\w+\s+TO\s+\d+)\s+([\d,]+\.?\d*)\s+([\d,]+\.?\d*)/g,
+    // Pattern for tabular format with debit/credit columns
+    /(\d{1,2}\/\d{1,2}\/\d{4}|\d{1,2}\s+\w{3}\s+\d{4})\s+.+?\s+([\d,]+\.?\d*)\s*$/gm,
+    // General date-description-amount patterns
+    /(\d{1,2}\/\d{1,2}\/\d{4})\s+(.+?)\s+([-+]?[\d,]+\.?\d*)/g,
+    /(\d{1,2}-\d{1,2}-\d{4})\s+(.+?)\s+([-+]?[\d,]+\.?\d*)/g,
+  ];
+  
+  // Try to parse as tabular data first
+  let headerFound = false;
+  let dateColumnIndex = -1;
+  let descriptionColumnIndex = -1;
+  let debitColumnIndex = -1;
+  let creditColumnIndex = -1;
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    
+    // Look for header row
+    if (!headerFound && (line.includes('Date') || line.includes('Description') || line.includes('Debit') || line.includes('Credit'))) {
+      headerFound = true;
+      const columns = line.split(/\s{2,}|\t/); // Split by multiple spaces or tabs
       
-      if (!isNaN(amount) && Math.abs(amount) > 0) {
-        transactions.push({
-          date: formatDate(dateStr),
-          description: description.trim(),
-          amount: Math.abs(amount),
-          type: amount < 0 ? 'expense' : 'income'
-        });
+      columns.forEach((col, index) => {
+        const colLower = col.toLowerCase();
+        if (colLower.includes('date') && !colLower.includes('value')) {
+          dateColumnIndex = index;
+        } else if (colLower.includes('description')) {
+          descriptionColumnIndex = index;
+        } else if (colLower.includes('debit')) {
+          debitColumnIndex = index;
+        } else if (colLower.includes('credit')) {
+          creditColumnIndex = index;
+        }
+      });
+      continue;
+    }
+    
+    // Parse data rows if header was found
+    if (headerFound && dateColumnIndex >= 0) {
+      const columns = line.split(/\s{2,}|\t/);
+      if (columns.length > Math.max(dateColumnIndex, descriptionColumnIndex, debitColumnIndex, creditColumnIndex)) {
+        const dateStr = columns[dateColumnIndex]?.trim();
+        const description = columns[descriptionColumnIndex]?.trim() || 'Transaction';
+        const debitStr = columns[debitColumnIndex]?.trim() || '';
+        const creditStr = columns[creditColumnIndex]?.trim() || '';
+        
+        // Process debit amount
+        if (debitStr && debitStr !== '' && !isNaN(parseFloat(debitStr.replace(/[^\d.-]/g, '')))) {
+          const amount = parseFloat(debitStr.replace(/[^\d.-]/g, ''));
+          if (amount > 0) {
+            transactions.push({
+              date: formatDate(dateStr),
+              description: description,
+              amount: amount,
+              type: 'expense'
+            });
+          }
+        }
+        
+        // Process credit amount
+        if (creditStr && creditStr !== '' && !isNaN(parseFloat(creditStr.replace(/[^\d.-]/g, '')))) {
+          const amount = parseFloat(creditStr.replace(/[^\d.-]/g, ''));
+          if (amount > 0) {
+            transactions.push({
+              date: formatDate(dateStr),
+              description: description,
+              amount: amount,
+              type: 'income'
+            });
+          }
+        }
       }
     }
   }
   
+  // If tabular parsing didn't work, fall back to regex patterns
+  if (transactions.length === 0) {
+    for (const pattern of patterns) {
+      let match;
+      while ((match = pattern.exec(text)) !== null) {
+        let dateStr, description, amountStr;
+        
+        if (match.length === 7) {
+          // Format: date, value_date, description, reference, debit, balance
+          [, dateStr, , description, , amountStr] = match;
+        } else if (match.length === 4) {
+          // Format: date, description, amount
+          [, dateStr, description, amountStr] = match;
+        } else {
+          continue;
+        }
+        
+        const amount = parseFloat(amountStr.replace(/[^\d.-]/g, ''));
+        
+        if (!isNaN(amount) && Math.abs(amount) > 0) {
+          transactions.push({
+            date: formatDate(dateStr),
+            description: description.trim(),
+            amount: Math.abs(amount),
+            type: amount < 0 ? 'expense' : 'income'
+          });
+        }
+      }
+    }
+  }
+  
+  console.log(`Parsed ${transactions.length} transactions from PDF`);
   return transactions;
 }
 

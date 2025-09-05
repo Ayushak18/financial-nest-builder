@@ -193,11 +193,13 @@ export const FileUploadStep: React.FC<FileUploadStepProps> = ({
             <p className="text-muted-foreground mb-4">
               Supports CSV, Excel (XLS/XLSX), and PDF files
             </p>
-            <Label htmlFor="file-upload">
-              <Button variant="outline" className="cursor-pointer">
-                Choose File
-              </Button>
-            </Label>
+            <Button 
+              variant="outline" 
+              className="cursor-pointer"
+              onClick={() => document.getElementById('file-upload')?.click()}
+            >
+              Choose File
+            </Button>
             <Input
               id="file-upload"
               type="file"

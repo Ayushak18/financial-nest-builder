@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useFinancialData } from '@/hooks/useFinancialData';
+import { useSimpleBudget } from '@/hooks/useSimpleBudget';
 import { supabase } from '@/integrations/supabase/client';
 import { BudgetOverview } from './BudgetOverview';
 import { BudgetSetup } from './BudgetSetup';
@@ -27,6 +27,7 @@ import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Skeleton } from './ui/skeleton';
 import { SidebarProvider, SidebarTrigger } from './ui/sidebar';
+import { Plus } from 'lucide-react';
 
 export const BudgetTracker = () => {
   const [selectedMonth, setSelectedMonth] = useState(new Date().toLocaleString('default', { month: 'long' }));
@@ -39,20 +40,13 @@ export const BudgetTracker = () => {
     bankAccounts,
     loading,
     user,
+    generateDummyData,
+    addTransaction,
     updateBudget,
     addCategory,
-    updateCategory,
     deleteCategory,
-    addTransaction,
-    updateTransaction,
-    deleteTransaction,
-    getTotalSpent,
-    getRemainingBudget,
-    getCategoryProgress,
-    getSpendingByType,
-    reconcileCategorySpent,
-    deleteMonthData
-  } = useFinancialData(selectedMonth, selectedYear);
+    calculations
+  } = useSimpleBudget(selectedMonth, selectedYear);
 
   const fetchAccounts = async () => {
     if (!user) return;
@@ -69,20 +63,16 @@ export const BudgetTracker = () => {
     setSelectedYear(year);
   };
 
-  const totalSpent = getTotalSpent();
-  const remainingBudget = getRemainingBudget();
-
-
   if (loading) {
     return (
-      <div className="min-h-screen bg-background p-4 md:p-6 lg:p-8">
-        <div className="max-w-7xl mx-auto space-y-8">
-          <div className="text-center space-y-2">
-            <Skeleton className="h-12 w-96 mx-auto" />
-            <Skeleton className="h-6 w-64 mx-auto" />
+      <div className="min-h-screen flex w-full bg-background">
+        <div className="flex-1 p-6 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Skeleton className="h-32" />
+            <Skeleton className="h-32" />
+            <Skeleton className="h-32" />
           </div>
-          <Skeleton className="h-48 w-full" />
-          <Skeleton className="h-64 w-full" />
+          <Skeleton className="h-96" />
         </div>
       </div>
     );
@@ -90,20 +80,18 @@ export const BudgetTracker = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-background p-4 md:p-6 lg:p-8">
-        <div className="max-w-2xl mx-auto">
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="max-w-md w-full space-y-6 p-6">
           <Card>
             <CardHeader className="text-center">
-              <CardTitle className="text-3xl font-bold bg-gradient-to-r from-primary to-success bg-clip-text text-transparent">
-                Monthly Budget Tracker
-              </CardTitle>
-              <CardDescription className="text-lg">
-                Take control of your finances with smart budget tracking
+              <CardTitle>Budget Tracker</CardTitle>
+              <CardDescription>
+                Please sign in to access your financial dashboard
               </CardDescription>
             </CardHeader>
-            <CardContent className="text-center space-y-4">
+            <CardContent className="space-y-4 text-center">
               <p className="text-muted-foreground">
-                Please sign in to access your budget tracker and start managing your finances.
+                Track your budget, manage transactions, and achieve your financial goals.
               </p>
               <Button onClick={() => window.location.href = '/auth'}>
                 Sign In to Continue
@@ -120,29 +108,56 @@ export const BudgetTracker = () => {
       case "budget":
         return (
           <div className="space-y-8">
-            <BudgetOverview budget={budget} totalSpent={totalSpent} remainingBudget={remainingBudget} onReconcile={reconcileCategorySpent} />
-            <BudgetSetup budget={budget} onUpdateBudget={updateBudget} getSpendingByType={getSpendingByType} />
+            <BudgetOverview 
+              budget={budget} 
+              totalSpent={calculations.getTotalSpent()} 
+              remainingBudget={calculations.getRemainingBudget()} 
+            />
+            <BudgetSetup 
+              budget={budget} 
+              onUpdateBudget={updateBudget} 
+              getSpendingByType={calculations.getSpendingByType} 
+            />
             <CategoryManager 
               categories={budget.categories} 
               onAddCategory={addCategory} 
-              onUpdateCategory={updateCategory} 
+              onUpdateCategory={() => {}} 
               onDeleteCategory={deleteCategory} 
-              getCategoryProgress={getCategoryProgress}
+              getCategoryProgress={calculations.getCategoryProgress}
               currentMonth={selectedMonth}
               currentYear={selectedYear}
-              onCategoriesChange={() => window.location.reload()}
+              onCategoriesChange={() => {}}
             />
           </div>
         );
       case "transactions":
         return (
           <div className="space-y-6">
-            <TransactionForm categories={budget.categories} bankAccounts={bankAccounts} onAddTransaction={addTransaction} />
-            <TransactionList transactions={budget.transactions} categories={budget.categories} bankAccounts={bankAccounts} onDeleteTransaction={deleteTransaction} onUpdateTransaction={updateTransaction} />
+            <TransactionForm 
+              categories={budget.categories} 
+              bankAccounts={bankAccounts} 
+              onAddTransaction={addTransaction} 
+            />
+            <TransactionList 
+              transactions={budget.transactions} 
+              categories={budget.categories}
+              bankAccounts={bankAccounts}
+              onDeleteTransaction={() => {}}
+              onUpdateTransaction={() => {}}
+            />
           </div>
         );
       case "insights":
-        return <BudgetInsights categories={budget.categories} transactions={budget.transactions} totalBudget={budget.totalBudget} fixedBudget={budget.fixedBudget} variableBudget={budget.variableBudget} savingsBudget={budget.savingsBudget} />;
+        return (
+          <BudgetInsights 
+            categories={budget.categories} 
+            transactions={budget.transactions} 
+            totalBudget={budget.totalBudget} 
+            fixedBudget={budget.fixedBudget} 
+            variableBudget={budget.variableBudget} 
+            savingsBudget={budget.savingsBudget} 
+          />
+        );
       case "accounts":
         return (
           <div className="space-y-6">
@@ -172,23 +187,38 @@ export const BudgetTracker = () => {
       case "forecast":
         return <FinancialForecasting />;
       case "export":
-        return <ExportData budget={budget} categories={budget.categories} transactions={budget.transactions} getSpendingByType={getSpendingByType} />;
+        return (
+          <ExportData 
+            budget={budget} 
+            categories={budget.categories} 
+            transactions={budget.transactions} 
+            getSpendingByType={calculations.getSpendingByType} 
+          />
+        );
       case "import":
         return <ImportWizard />;
       default:
         return (
           <div className="space-y-8">
-            <BudgetOverview budget={budget} totalSpent={totalSpent} remainingBudget={remainingBudget} onReconcile={reconcileCategorySpent} />
-            <BudgetSetup budget={budget} onUpdateBudget={updateBudget} getSpendingByType={getSpendingByType} />
+            <BudgetOverview 
+              budget={budget} 
+              totalSpent={calculations.getTotalSpent()} 
+              remainingBudget={calculations.getRemainingBudget()} 
+            />
+            <BudgetSetup 
+              budget={budget} 
+              onUpdateBudget={updateBudget} 
+              getSpendingByType={calculations.getSpendingByType} 
+            />
             <CategoryManager 
               categories={budget.categories} 
               onAddCategory={addCategory} 
-              onUpdateCategory={updateCategory} 
+              onUpdateCategory={() => {}} 
               onDeleteCategory={deleteCategory} 
-              getCategoryProgress={getCategoryProgress}
+              getCategoryProgress={calculations.getCategoryProgress}
               currentMonth={selectedMonth}
               currentYear={selectedYear}
-              onCategoriesChange={() => window.location.reload()}
+              onCategoriesChange={() => {}}
             />
           </div>
         );
@@ -205,31 +235,24 @@ export const BudgetTracker = () => {
           <header className="h-16 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center justify-between px-4 lg:px-6">
             <div className="flex items-center gap-4">
               <SidebarTrigger />
-              <div>
-                <h1 className="text-xl font-semibold">Monthly Budget Tracker</h1>
-                <p className="text-sm text-muted-foreground">Take control of your finances</p>
-              </div>
+              <h1 className="text-lg font-semibold">Financial Dashboard</h1>
             </div>
             
             <div className="flex items-center gap-4">
-              <CompactMonthSelector 
+              <CompactMonthSelector
                 selectedMonth={selectedMonth}
                 selectedYear={selectedYear}
                 onMonthChange={handleMonthChange}
               />
-              {selectedMonth === 'August' && selectedYear === 2024 && (
-                <Button 
-                  variant="destructive" 
-                  size="sm"
-                  onClick={() => {
-                    if (confirm('Are you sure you want to delete ALL August 2024 data? This cannot be undone.')) {
-                      deleteMonthData('August', 2024);
-                    }
-                  }}
-                >
-                  Delete August Data
-                </Button>
-              )}
+              <Button 
+                onClick={generateDummyData}
+                variant="outline"
+                size="sm"
+                className="ml-4"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Generate Demo Data
+              </Button>
               <UserProfileDropdown user={user} />
             </div>
           </header>

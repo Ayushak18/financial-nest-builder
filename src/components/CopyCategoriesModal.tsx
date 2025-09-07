@@ -38,34 +38,50 @@ export const CopyCategoriesModal = ({ currentMonth, currentYear, onCopyComplete 
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Get all monthly budgets with categories
-      const { data: budgets, error } = await supabase
+      // Get all monthly budgets for this user (excluding current month/year)
+      const { data: budgets, error: budgetsError } = await supabase
         .from('monthly_budgets')
-        .select(`
-          month, 
-          year, 
-          budget_categories!inner(id)
-        `)
-        .eq('user_id', user.id)
-        .neq('month', currentMonth)
-        .neq('year', currentYear);
+        .select('id, month, year')
+        .eq('user_id', user.id);
 
-      if (error) throw error;
+      if (budgetsError) {
+        console.error('Error fetching budgets:', budgetsError);
+        throw budgetsError;
+      }
 
-      // Count categories for each month
-      const monthsWithCategories = budgets?.reduce((acc: AvailableMonth[], budget) => {
-        const existing = acc.find(m => m.month === budget.month && m.year === budget.year);
-        if (existing) {
-          existing.categoryCount++;
-        } else {
-          acc.push({
+      if (!budgets || budgets.length === 0) {
+        setAvailableMonths([]);
+        return;
+      }
+
+      // Filter out current month/year and get categories count for each
+      const monthsWithCategories: AvailableMonth[] = [];
+      
+      for (const budget of budgets) {
+        // Skip current month/year
+        if (budget.month === currentMonth && budget.year === currentYear) {
+          continue;
+        }
+
+        // Get category count for this budget
+        const { data: categories, error: categoriesError } = await supabase
+          .from('budget_categories')
+          .select('id')
+          .eq('monthly_budget_id', budget.id);
+
+        if (categoriesError) {
+          console.error('Error fetching categories for budget:', budget.id, categoriesError);
+          continue;
+        }
+
+        if (categories && categories.length > 0) {
+          monthsWithCategories.push({
             month: budget.month,
             year: budget.year,
-            categoryCount: 1
+            categoryCount: categories.length
           });
         }
-        return acc;
-      }, []) || [];
+      }
 
       // Sort by year and month
       monthsWithCategories.sort((a, b) => {

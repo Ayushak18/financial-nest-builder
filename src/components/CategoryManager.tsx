@@ -8,6 +8,7 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Trash2, FolderOpen, Target, Edit, Check, X } from 'lucide-react';
 import { BudgetCategory } from '@/types/budget';
+import { CopyCategoriesModal } from './CopyCategoriesModal';
 
 interface CategoryManagerProps {
   categories: BudgetCategory[];
@@ -15,6 +16,9 @@ interface CategoryManagerProps {
   onUpdateCategory: (categoryId: string, updates: Partial<BudgetCategory>) => void;
   onDeleteCategory: (categoryId: string) => void;
   getCategoryProgress: (category: BudgetCategory) => number;
+  currentMonth: string;
+  currentYear: number;
+  onCategoriesChange: () => void;
 }
 
 const categoryColors = [
@@ -40,7 +44,10 @@ export const CategoryManager = ({
   onAddCategory, 
   onUpdateCategory, 
   onDeleteCategory, 
-  getCategoryProgress 
+  getCategoryProgress,
+  currentMonth,
+  currentYear,
+  onCategoriesChange
 }: CategoryManagerProps) => {
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -104,15 +111,22 @@ export const CategoryManager = ({
           <FolderOpen className="h-5 w-5 text-primary" />
           Budget Categories
         </CardTitle>
-        <Button 
-          size="sm" 
-          onClick={() => setIsAdding(true)}
-          disabled={isAdding}
-          className="bg-gradient-to-r from-primary to-success"
-        >
-          <Plus className="h-4 w-4 mr-1" />
-          Add Category
-        </Button>
+        <div className="flex gap-2">
+          <CopyCategoriesModal 
+            currentMonth={currentMonth}
+            currentYear={currentYear}
+            onCopyComplete={onCategoriesChange}
+          />
+          <Button 
+            size="sm" 
+            onClick={() => setIsAdding(true)}
+            disabled={isAdding}
+            className="bg-gradient-to-r from-primary to-success"
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            Add Category
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         {/* Quick Add Default Categories */}

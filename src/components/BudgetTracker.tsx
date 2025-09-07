@@ -122,7 +122,16 @@ export const BudgetTracker = () => {
           <div className="space-y-8">
             <BudgetOverview budget={budget} totalSpent={totalSpent} remainingBudget={remainingBudget} onReconcile={reconcileCategorySpent} />
             <BudgetSetup budget={budget} onUpdateBudget={updateBudget} getSpendingByType={getSpendingByType} />
-            <CategoryManager categories={budget.categories} onAddCategory={addCategory} onUpdateCategory={updateCategory} onDeleteCategory={deleteCategory} getCategoryProgress={getCategoryProgress} />
+            <CategoryManager 
+              categories={budget.categories} 
+              onAddCategory={addCategory} 
+              onUpdateCategory={updateCategory} 
+              onDeleteCategory={deleteCategory} 
+              getCategoryProgress={getCategoryProgress}
+              currentMonth={selectedMonth}
+              currentYear={selectedYear}
+              onCategoriesChange={() => window.location.reload()}
+            />
           </div>
         );
       case "transactions":
@@ -171,7 +180,16 @@ export const BudgetTracker = () => {
           <div className="space-y-8">
             <BudgetOverview budget={budget} totalSpent={totalSpent} remainingBudget={remainingBudget} onReconcile={reconcileCategorySpent} />
             <BudgetSetup budget={budget} onUpdateBudget={updateBudget} getSpendingByType={getSpendingByType} />
-            <CategoryManager categories={budget.categories} onAddCategory={addCategory} onUpdateCategory={updateCategory} onDeleteCategory={deleteCategory} getCategoryProgress={getCategoryProgress} />
+            <CategoryManager 
+              categories={budget.categories} 
+              onAddCategory={addCategory} 
+              onUpdateCategory={updateCategory} 
+              onDeleteCategory={deleteCategory} 
+              getCategoryProgress={getCategoryProgress}
+              currentMonth={selectedMonth}
+              currentYear={selectedYear}
+              onCategoriesChange={() => window.location.reload()}
+            />
           </div>
         );
     }

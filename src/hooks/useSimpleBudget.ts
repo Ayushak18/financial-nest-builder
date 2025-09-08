@@ -59,7 +59,7 @@ export const useSimpleBudget = (selectedMonth?: string, selectedYear?: number) =
       .eq('user_id', userId)
       .eq('month', targetMonth)
       .eq('year', targetYear)
-      .single();
+      .maybeSingle();
 
     if (!monthlyBudget) {
       const { data: newBudget } = await supabase

@@ -7,8 +7,10 @@ export class DummyDataGenerator {
   static async generateAllData(userId: string) {
     console.log('Generating dummy data for user:', userId);
     
-    // Clear existing data first
-    await this.clearUserData(userId);
+    try {
+      // Clear existing data first
+      console.log('Clearing existing user data...');
+      await this.clearUserData(userId);
     
     // Generate data for current month
     const currentMonth = new Date().toLocaleString('default', { month: 'long' });
@@ -42,6 +44,10 @@ export class DummyDataGenerator {
     await this.createRecurringTransactions(userId, accounts, categories);
     
     console.log('Dummy data generation completed!');
+    } catch (error) {
+      console.error('Error generating dummy data:', error);
+      throw error;
+    }
   }
 
   private static async clearUserData(userId: string) {
@@ -74,7 +80,7 @@ export class DummyDataGenerator {
 
     const createdAccounts = [];
     for (const acc of accounts) {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('bank_accounts')
         .insert({
           user_id: userId,
@@ -86,6 +92,8 @@ export class DummyDataGenerator {
         .select()
         .single();
       
+      if (error) throw error;
+      
       if (data) createdAccounts.push(data);
     }
     
@@ -93,7 +101,7 @@ export class DummyDataGenerator {
   }
 
   private static async createMonthlyBudget(userId: string, month: string, year: number) {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('monthly_budgets')
       .insert({
         user_id: userId,
@@ -107,6 +115,7 @@ export class DummyDataGenerator {
       .select()
       .single();
     
+    if (error) throw error;
     return data;
   }
 
@@ -136,7 +145,7 @@ export class DummyDataGenerator {
       const spentPercentage = 0.6 + Math.random() * 0.3;
       const spent = Math.round(cat.amount * spentPercentage);
       
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('budget_categories')
         .insert({
           user_id: userId,
@@ -149,6 +158,8 @@ export class DummyDataGenerator {
         })
         .select()
         .single();
+      
+      if (error) throw error;
       
       if (data) createdCategories.push(data);
     }

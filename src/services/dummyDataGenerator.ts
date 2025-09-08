@@ -108,6 +108,30 @@ export class DummyDataGenerator {
   }
 
   private static async createMonthlyBudget(userId: string, month: string, year: number) {
+    console.log(`Creating monthly budget for ${month} ${year}...`);
+    
+    // First check if budget already exists
+    const { data: existingBudget } = await supabase
+      .from('monthly_budgets')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('month', month)
+      .eq('year', year)
+      .maybeSingle();
+    
+    if (existingBudget) {
+      console.log('Monthly budget already exists, using existing one');
+      const { data: budget, error } = await supabase
+        .from('monthly_budgets')
+        .select('*')
+        .eq('id', existingBudget.id)
+        .single();
+      
+      if (error) throw error;
+      return budget;
+    }
+    
+    console.log('Creating new monthly budget...');
     const { data, error } = await supabase
       .from('monthly_budgets')
       .insert({

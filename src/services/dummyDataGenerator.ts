@@ -51,6 +51,7 @@ export class DummyDataGenerator {
   }
 
   private static async clearUserData(userId: string) {
+    console.log('Clearing existing data for user:', userId);
     const tables = [
       'transactions',
       'budget_categories', 
@@ -65,8 +66,14 @@ export class DummyDataGenerator {
     ];
 
     for (const table of tables) {
-      await supabase.from(table as any).delete().eq('user_id', userId);
+      console.log(`Clearing data from ${table}...`);
+      const { error } = await supabase.from(table as any).delete().eq('user_id', userId);
+      if (error) {
+        console.error(`Error clearing ${table}:`, error);
+        throw error;
+      }
     }
+    console.log('Data clearing completed');
   }
 
   private static async createBankAccounts(userId: string) {

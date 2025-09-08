@@ -128,21 +128,30 @@ export const useSimpleBudget = (selectedMonth?: string, selectedYear?: number) =
   };
 
   const generateDummyData = async () => {
-    if (!user) return;
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to generate demo data",
+        variant: "destructive",
+      });
+      return;
+    }
     
     setLoading(true);
     try {
+      console.log('Starting dummy data generation for user:', user.id);
       await DummyDataGenerator.generateAllData(user.id);
+      console.log('Dummy data generation completed, reloading data...');
       await loadBudgetData(user.id);
       toast({
         title: "Success",
-        description: "Dummy data generated successfully!",
+        description: "Demo data generated successfully!",
       });
     } catch (error) {
       console.error('Error generating dummy data:', error);
       toast({
         title: "Error",
-        description: "Failed to generate dummy data",
+        description: `Failed to generate demo data: ${error.message || 'Unknown error'}`,
         variant: "destructive",
       });
     } finally {
